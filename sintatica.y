@@ -15,6 +15,7 @@ typedef struct{
 
 	string tipo;
 	string nome;
+	string valor;
 } variable;
 
 struct atributos
@@ -29,11 +30,13 @@ unordered_map <string, variable> tabSym;
 int yylex(void);
 void yyerror(string);
 string genLabel();
-string addVarToTabSym(string nomeDado);
+string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar);
 %}
 
 %token TK_NUM
-%token TK_MAIN TK_ID TK_TIPO_INT TK_DEC_VAR TK_TIPO_BOOL
+%token TK_MAIN TK_ID TK_TIPO_INT
+%token TK_DEC_VAR TK_TIPO_BOOL TK_TIPO_CHAR
+%token TK_CHAR
 %token TK_FIM TK_ERROR
 
 %start S
@@ -73,11 +76,12 @@ COMANDO 	: E ';'
 			| ATRIBUICAO ';'
 			;
 
-ATRIBUICAO 	: TK_DEC_VAR TK_ID '=' E
+ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 			{
-				string nomeAuxID = addVarToTabSym($2.label);
-				$$.traducao = $4.traducao + "\t" + nomeAuxID + " = " + $4.label + ";\n";
+				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "char");
+				$$.traducao = "\t" + nomeAuxID + " = " + $5.traducao + ";\n";
 			}
+			;
 
 E 			: E '+' E
 			{
@@ -121,6 +125,12 @@ E 			: E '+' E
 				$$.traducao = "\t" + $$.label + " = " + $1.traducao + ";\n";
 			}
 
+			| TK_CHAR
+			{
+				$$.label = genLabel();
+				$$.traducao = "\t" + $$.label + " = " + $1.traducao + ";\n";
+			}
+
 			/*| TK_TIPO_BOOL COMANDO
 			{
 				$$.label = genLabel();
@@ -153,7 +163,7 @@ string genLabel(){
 	return nomeVar + to_string(valorVar);
 }
 
-string addVarToTabSym(string nomeDado){
+string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar){
 
 	unordered_map<string, variable>::const_iterator got = tabSym.find(nomeDado);
 	string nomeGerado;
@@ -164,9 +174,10 @@ string addVarToTabSym(string nomeDado){
 		nomeGerado = genLabel();
 
 		Var = {
-				.tipo = "a",
-			   	.nome = nomeGerado
-			  };
+						.tipo = tipoVar,
+			   		.nome = nomeGerado,
+						.valor = conteudoVar
+					};
 
 		tabSym[nomeDado] = Var;
 		return tabSym[nomeDado].nome;

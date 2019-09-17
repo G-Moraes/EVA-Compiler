@@ -24,14 +24,18 @@ BOOL {"true"|"false"}
 
 "int"		{return TK_TIPO_INT;}
 
+"char"      {return TK_TIPO_CHAR;}
+
 "var"       {return TK_DEC_VAR;}
 
-"bool"		{ yylval.label = "int"; yylval.traducao = yytext; return TK_TIPO_BOOL;}
+"bool"		{ yylval.label = "bool"; yylval.traducao = yytext; return TK_TIPO_BOOL;}
 
 [(){}[\];,=]	{ return *yytext; }
 
 [+\-*/]		{ return *yytext; }
 
+
+{CHAR}      { yylval.traducao = yytext; return TK_CHAR; }
 {NUM}		{ yylval.traducao = yytext; return TK_NUM; }
 {ID}		{ yylval.label = yytext; return TK_ID; }
 
