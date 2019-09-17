@@ -81,6 +81,12 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "char");
 				$$.traducao = "\t" + nomeAuxID + " = " + $5.traducao + ";\n";
 			}
+
+			| TK_DEC_VAR TK_ID TK_TIPO_INT '=' E
+			{
+				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
+				$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
+			}
 			;
 
 E 			: E '+' E
@@ -130,12 +136,6 @@ E 			: E '+' E
 				$$.label = genLabel();
 				$$.traducao = "\t" + $$.label + " = " + $1.traducao + ";\n";
 			}
-
-			/*| TK_TIPO_BOOL COMANDO
-			{
-				$$.label = genLabel();
-
-			}*/
 			;
 %%
 
