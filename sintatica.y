@@ -34,9 +34,9 @@ string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar);
 %}
 
 %token TK_NUM
-%token TK_MAIN TK_ID TK_TIPO_INT
-%token TK_DEC_VAR TK_TIPO_BOOL TK_TIPO_CHAR
-%token TK_CHAR
+%token TK_MAIN TK_ID
+%token TK_DEC_VAR TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_BOOL TK_TIPO_CHAR
+%token TK_CHAR TK_FLOAT
 %token TK_FIM TK_ERROR
 
 %start S
@@ -87,6 +87,12 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
 				$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
 			}
+
+			| TK_DEC_VAR TK_ID TK_TIPO_FLOAT '=' E
+			{
+				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "float");
+				$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
+			}
 			;
 
 E 			: E '+' E
@@ -124,6 +130,12 @@ E 			: E '+' E
 				$$.label = genLabel();
 				$$.traducao = "\t" + $$.label + " = " + $1.traducao + ";\n";
 			}
+
+			| TK_FLOAT
+		 	{
+			 $$.label = genLabel();
+			 $$.traducao = "\t" + $$.label + " = " + $1.traducao + ";\n";
+		 	}
 
 			| TK_ID
 			{

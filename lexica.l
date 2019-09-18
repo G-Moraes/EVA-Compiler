@@ -26,6 +26,8 @@ BOOL {"true"|"false"}
 
 "char"      {return TK_TIPO_CHAR;}
 
+"float"     {return TK_TIPO_FLOAT;}
+
 "var"       {return TK_DEC_VAR;}
 
 "bool"		{ yylval.label = "bool"; yylval.traducao = yytext; return TK_TIPO_BOOL;}
@@ -36,8 +38,9 @@ BOOL {"true"|"false"}
 
 
 {CHAR}      { yylval.traducao = yytext; return TK_CHAR; }
-{NUM}		{ yylval.traducao = yytext; return TK_NUM; }
-{ID}		{ yylval.label = yytext; return TK_ID; }
+{REAL}      { yylval.traducao = yytext; return TK_FLOAT;}
+{NUM}		{ yylval.traducao = yytext; return TK_NUM;  }
+{ID}		{ yylval.label = yytext; return TK_ID;      }
 
 .			{ *yytext; }
 
