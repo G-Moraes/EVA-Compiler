@@ -1,4 +1,4 @@
 int main()
 {
-	var c float = 1.0;
+	var c int = 1 + 1;
 }

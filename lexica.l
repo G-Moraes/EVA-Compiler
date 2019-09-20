@@ -8,11 +8,11 @@ DIGITO [0-9]
 LETRA [A-Za-z_]
 
 DELIM {ESPACO}+
-NUM {DIGITO}+
-REAL {NUM}+("."{NUM}+)?
-CHAR \'({LETRA}|{NUM})\'
-ID {LETRA}({LETRA}|{NUM})*
-BOOL {"true"|"false"}
+INT {DIGITO}+
+REAL {INT}+("."{INT}+)?
+CHAR \'({LETRA}|{INT})\'
+ID {LETRA}({LETRA}|{INT})*
+BOOL {"TRUE"|"FALSE"}
 
 %%
 
@@ -30,6 +30,10 @@ BOOL {"true"|"false"}
 
 "var"       {return TK_DEC_VAR;}
 
+"(f)"		{return TK_CONV_FLOAT;}
+
+"(i)"		{return TK_CONV_INT;}
+
 "bool"		{ yylval.label = "bool"; yylval.traducao = yytext; return TK_TIPO_BOOL;}
 
 [(){}[\];,=]	{ return *yytext; }
@@ -39,7 +43,7 @@ BOOL {"true"|"false"}
 
 {CHAR}      { yylval.traducao = yytext; return TK_CHAR; }
 {REAL}      { yylval.traducao = yytext; return TK_FLOAT;}
-{NUM}		{ yylval.traducao = yytext; return TK_NUM;  }
+{INT}		{ yylval.traducao = yytext; return TK_INT;  }
 {ID}		{ yylval.label = yytext; return TK_ID;      }
 
 .			{ *yytext; }
