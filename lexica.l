@@ -8,10 +8,10 @@ DIGITO [0-9]
 LETRA [A-Za-z_]
 
 DELIM {ESPACO}+
-INT {DIGITO}+
-REAL {INT}+("."{INT}+)?
-CHAR \'({LETRA}|{INT})\'
-ID {LETRA}({LETRA}|{INT})*
+NUM {DIGITO}+
+REAL {NUM}+("."{NUM}+)?
+CHAR \'({LETRA}|{NUM})\'
+ID {LETRA}({LETRA}|{NUM})*
 BOOL {"TRUE"|"FALSE"}
 
 %%
@@ -40,10 +40,9 @@ BOOL {"TRUE"|"FALSE"}
 
 [+\-*/]		{ return *yytext; }
 
-
+{NUM}		{ yylval.traducao = yytext; return TK_NUM;  }
 {CHAR}      { yylval.traducao = yytext; return TK_CHAR; }
 {REAL}      { yylval.traducao = yytext; return TK_FLOAT;}
-{INT}		{ yylval.traducao = yytext; return TK_INT;  }
 {ID}		{ yylval.label = yytext; return TK_ID;      }
 
 .			{ *yytext; }

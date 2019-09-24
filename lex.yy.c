@@ -363,9 +363,9 @@ struct yy_trans_info
 static const flex_int16_t yy_accept[50] =
     {   0,
         0,    0,   19,   17,    2,    1,   17,   11,   11,   12,
-       14,   16,   16,   16,   16,   16,   16,   16,    2,    0,
-        0,    0,    0,    0,   14,   16,   16,   16,   16,   16,
-       16,   16,   16,   13,    8,    9,   14,   16,   16,   16,
+       13,   16,   16,   16,   16,   16,   16,   16,    2,    0,
+        0,    0,    0,    0,   13,   16,   16,   16,   16,   16,
+       16,   16,   16,   14,    8,    9,   15,   16,   16,   16,
         4,   16,    7,   10,    5,   16,    3,    6,    0
     } ;
 
@@ -821,32 +821,32 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
+#line 43 "lexica.l"
+{ yylval.traducao = yytext; return TK_NUM;  }
+	YY_BREAK
+case 14:
+YY_RULE_SETUP
 #line 44 "lexica.l"
 { yylval.traducao = yytext; return TK_CHAR; }
 	YY_BREAK
-case 14:
+case 15:
 YY_RULE_SETUP
 #line 45 "lexica.l"
 { yylval.traducao = yytext; return TK_FLOAT;}
 	YY_BREAK
-case 15:
-YY_RULE_SETUP
-#line 46 "lexica.l"
-{ yylval.traducao = yytext; return TK_INT;  }
-	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 47 "lexica.l"
+#line 46 "lexica.l"
 { yylval.label = yytext; return TK_ID;      }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 49 "lexica.l"
+#line 48 "lexica.l"
 { *yytext; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 51 "lexica.l"
+#line 50 "lexica.l"
 ECHO;
 	YY_BREAK
 #line 853 "lex.yy.c"
@@ -1854,6 +1854,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 51 "lexica.l"
+#line 50 "lexica.l"
 
 

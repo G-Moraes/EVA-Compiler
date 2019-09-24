@@ -1,4 +1,18 @@
 int main()
 {
-	var c int = 1 + 1;
+	var c char;
+	var asnqwfqkfnkalsfsan int;
+	var i int = 1 + 2 + 3.0;
 }
+
+temp1 char
+temp2 int
+temp3 int = 1
+temp4 int 
+temp5 int = 2
+temp6 int 
+temp7 int = 1 + 2
+temp8 int = 3
+temp9 int
+temp10 int = 1 + 2 + 3
+temp11 int i = temp10
