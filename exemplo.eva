@@ -1,7 +1,9 @@
 int main()
 {
 	var catapimbas int = 3;
-	catapimbas = 2 + 5;
+	catapimbas = 1 + (5 * 4);
+	catapimbas = (f) 5.0 + 4;
+	catapimbas = (i) 7;
 }
 
 simbolo		first		follow
