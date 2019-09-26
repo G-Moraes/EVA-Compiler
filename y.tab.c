@@ -489,7 +489,7 @@ static const yytype_uint8 yyrline[] =
 {
        0,    57,    57,    65,    71,    76,    81,    86,    88,    92,
       99,   106,   114,   121,   128,   136,   144,   153,   162,   171,
-     178,   196,   206,   215,   222
+     178,   193,   203,   212,   219
 };
 #endif
 
@@ -1448,16 +1448,13 @@ yyreduce:
   case 20:
 #line 179 "sintatica.y" /* yacc.c:1646  */
     {
-				(yyval).label = genLabel();
-				string nomeAuxID = addVarToTabSym((yyvsp[-2]).label, (yyvsp[-2]).traducao, (yyvsp[-2]).tipo);
-				addVarToTempVector("\t" + (yyval).label + " " + (yyval).tipo + ";\n");
 				(yyval).traducao = (yyvsp[0]).traducao + "\t" + (yyval).label + " = " + (yyvsp[0]).traducao + ";\n";
 			}
-#line 1457 "y.tab.c" /* yacc.c:1646  */
+#line 1454 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 197 "sintatica.y" /* yacc.c:1646  */
+#line 194 "sintatica.y" /* yacc.c:1646  */
     {
 				(yyval).label ="nomeTemporarioInt" + to_string(valorTemp++); 
 				(yyval).tipo = "int";
@@ -1466,11 +1463,11 @@ yyreduce:
 
 				(yyval).traducao = "\t" + (yyval).label + " = " + (yyvsp[0]).traducao + ";\n";
 			}
-#line 1470 "y.tab.c" /* yacc.c:1646  */
+#line 1467 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 207 "sintatica.y" /* yacc.c:1646  */
+#line 204 "sintatica.y" /* yacc.c:1646  */
     {
 				(yyval).label = "nomeTemporarioFloat" + to_string(valorTemp++);
 				(yyval).tipo = "float";
@@ -1478,21 +1475,21 @@ yyreduce:
 				addVarToTempVector("\t" + (yyval).label + " float" + ";\n");
 				(yyval).traducao = "\t" + (yyval).label + " = " + (yyvsp[0]).traducao + ";\n";
 		 	}
-#line 1482 "y.tab.c" /* yacc.c:1646  */
+#line 1479 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 216 "sintatica.y" /* yacc.c:1646  */
+#line 213 "sintatica.y" /* yacc.c:1646  */
     {
 				(yyval).label = addVarToTabSym((yyvsp[0]).label, (yyvsp[0]).traducao, (yyvsp[0]).tipo);
 				addVarToTempVector("\t" + (yyvsp[0]).label + ";\n");
 				(yyval).traducao = "\t" + (yyval).label + " = " + (yyvsp[0]).traducao + ";\n";
 			}
-#line 1492 "y.tab.c" /* yacc.c:1646  */
+#line 1489 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 223 "sintatica.y" /* yacc.c:1646  */
+#line 220 "sintatica.y" /* yacc.c:1646  */
     {
 				(yyval).label = "nomeTemporarioChar" + to_string(valorTemp++);
 				(yyval).tipo = "char";
@@ -1500,11 +1497,11 @@ yyreduce:
 				addVarToTempVector("\t" + (yyvsp[0]).label + " char" + ";\n");
 				(yyval).traducao = "\t" + (yyval).label + " = " + (yyvsp[0]).traducao + ";\n";
 			}
-#line 1504 "y.tab.c" /* yacc.c:1646  */
+#line 1501 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1508 "y.tab.c" /* yacc.c:1646  */
+#line 1505 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1732,7 +1729,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 231 "sintatica.y" /* yacc.c:1906  */
+#line 228 "sintatica.y" /* yacc.c:1906  */
 
 
 #include "lex.yy.c"

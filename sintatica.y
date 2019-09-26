@@ -177,9 +177,6 @@ E 			: E '+' E
 
 			| TK_ID '=' E
 			{
-				$$.label = genLabel();
-				string nomeAuxID = addVarToTabSym($1.label, $1.traducao, $1.tipo);
-				addVarToTempVector("\t" + $$.label + " " + $$.tipo + ";\n");
 				$$.traducao = $3.traducao + "\t" + $$.label + " = " + $3.traducao + ";\n";
 			}
 
