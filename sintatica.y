@@ -43,8 +43,9 @@ void printVector();
 %}
 
 %token TK_MAIN TK_ID
-%token TK_DEC_VAR TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_BOOL TK_TIPO_CHAR TK_CONV_FLOAT TK_CONV_INT
-%token TK_CHAR TK_FLOAT TK_NUM
+%token TK_DEC_VAR TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_BOOL TK_TIPO_CHAR
+%token TK_CONV_FLOAT TK_CONV_INT
+%token TK_CHAR TK_FLOAT TK_BOOL TK_NUM
 %token TK_FIM TK_ERROR
 
 %start S
@@ -58,7 +59,7 @@ void printVector();
 
 S 			: TK_TIPO_INT TK_MAIN '(' ')' BLOCO
 			{
-				cout << "/*Compilador Eva*/\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\n\nint main(void)\n{" <<endl;
+				cout << "/*Compilador Eva*/\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\n#define TRUE 1\n#define FALSE 0\n\nint main(void)\n{" <<endl;
 				printVector();
 				cout << $5.traducao << "\treturn 0;\n}" << endl;
 			}
@@ -118,6 +119,13 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 				addVarToTempVector("\tfloat " + nomeAuxID +  ";\n");
 			}
 
+			| TK_DEC_VAR TK_ID TK_TIPO_BOOL '=' TK_BOOL
+			{
+				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
+				$$.traducao = "\t" + nomeAuxID + " = " + $5.traducao + ";\n";
+				addVarToTempVector("\tint " + nomeAuxID + ";\n");
+			}
+
 			| TK_ID '=' E
 			{
 				string nomeAuxID = addVarToTabSym($1.label, $3.traducao, $3.tipo);
@@ -138,28 +146,59 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 				$$.tipo = explicitConversion($4.tipo, "int");
 				$$.traducao = $4.traducao + "\t" + $$.label + " =  (int) " + $4.label + ";\n";
 			}
+
+			| TK_ID '=' E '<' E
+			{
+				cout << "calabouço\n" << endl;
+				$$.label = genLabel();
+				$$.tipo = "int";
+				
+			}	
+			/*
+			| E '>' E
+			{
+
+			}
+
+			| E "<=" E
+			{
+
+			}
+
+			| E ">=" E
+			{
+
+			}*/
 			;
 
 DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 			{
 				string nomeAuxID = addVarToTabSym($2.label, "none", "char");
-				$$.traducao = "\t" + nomeAuxID + " char" + ";\n";
+				$$.traducao = "\t" + nomeAuxID + ";\n";
 				addVarToTempVector("\tchar " + nomeAuxID +  ";\n");
 			}
 
 			| TK_DEC_VAR TK_ID TK_TIPO_INT
 			{
 				string nomeAuxID = addVarToTabSym($2.label, "0", "int");
-				$$.traducao ="\t" + nomeAuxID + " int" + ";\n";
+				$$.traducao ="\t" + nomeAuxID + ";\n";
 				addVarToTempVector("\tint " + nomeAuxID + ";\n");
 			}
 
 			| TK_DEC_VAR TK_ID TK_TIPO_FLOAT
 			{
 				string nomeAuxID = addVarToTabSym($2.label, "0.0", "float");
-				$$.traducao = "\t" + nomeAuxID + " float" + ";\n";
+				$$.traducao = "\t" + nomeAuxID + ";\n";
 				addVarToTempVector("\tfloat " + nomeAuxID + ";\n");
 			}
+
+			| TK_DEC_VAR TK_ID TK_TIPO_BOOL
+			{
+				string nomeAuxID = addVarToTabSym($2.label, "0", "int");
+				$$.traducao = "\t" + nomeAuxID + ";\n";
+				addVarToTempVector("\tint " + nomeAuxID + ";\n");
+			}
+
 			; 
 
 E 			: E '+' E
@@ -203,7 +242,6 @@ E 			: E '+' E
 			{
 				$$.label ="nomeTemporarioInt" + to_string(valorTemp++); 
 				$$.tipo = "int";
-				//addVarToTabSym($$.label, $1.traducao, "int");
 				addVarToTempVector("\tint "  + $$.label + ";\n");
 
 				$$.traducao = "\t" + $$.label + " = " + $1.traducao + ";\n";
@@ -213,7 +251,6 @@ E 			: E '+' E
 		 	{
 				$$.label = "nomeTemporarioFloat" + to_string(valorTemp++);
 				$$.tipo = "float";
-				//addVarToTabSym($$.label, $1.traducao, "float");
 				addVarToTempVector("\tfloat " + $$.label + ";\n");
 				$$.traducao = "\t" + $$.label + " = " + $1.traducao + ";\n";
 		 	}
@@ -229,8 +266,15 @@ E 			: E '+' E
 			{
 				$$.label = "nomeTemporarioChar" + to_string(valorTemp++);
 				$$.tipo = "char";
-				//addVarToTabSym($$.label, $1.traducao, "char");
 				addVarToTempVector("\tchar "  + $1.label + ";\n");
+				$$.traducao = "\t" + $$.label + " = " + $1.traducao + ";\n";
+			}
+
+			|TK_BOOL
+			{
+				$$.label = "nomeTemporarioBool" + to_string(valorTemp++);
+				$$.tipo = "bool";
+				addVarToTempVector("\tint " + $1.label + ";\n");
 				$$.traducao = "\t" + $$.label + " = " + $1.traducao + ";\n";
 			}
 			;
@@ -315,7 +359,7 @@ string implicitConversion(string tipo0, string tipo1)
 
     else
     {
-    	yyerror("nao e possivel realizar operacoes com tipo char\n");
+    	yyerror("nao e possivel realizar operacoes com tipo char!\n");
     }
 
     return "";
@@ -323,9 +367,9 @@ string implicitConversion(string tipo0, string tipo1)
 
 string explicitConversion(string tipo0, string tipo1){
 
-	if (tipo0 == "char")
+	if (tipo0 == "char" || tipo0 == "bool")
 	{
-		yyerror("não é possivel converter para char\n");
+		yyerror("não é possivel converter em char ou boolean!\n");
 	}
 
 	else

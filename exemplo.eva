@@ -4,20 +4,7 @@ int main()
 	catapimbas = 1 + (5 * 4);
 	catapimbas = (f) 5.0 + 4;
 	catapimbas = (i) 7;
+	var i bool = TRUE;
+	i = 5 < 4;
+	var t int;
 }
-
-simbolo		first		follow
-f 			(, id		*, follow(t), follow(t')
-t 			(, id		+, follow(e), follow(e')
-e 			(, id		), fimString
-e' 			+, vazio	follow(e)
-t'			*, vazio	follow(t), follow(t')
-
-
-A 			b, c, d, e, f, g, vazio		fimString
-B 			b, c, d, e, f, g, vazio		fimString
-C 			c, d, e, f, g,  vazio		fimString
-D 			d, e, f, g, vazio			fimString
-E 			e, f, g, vazio				fimString
-F 			f, g, vazio					fimString
-G 			g, vazio					fimString
