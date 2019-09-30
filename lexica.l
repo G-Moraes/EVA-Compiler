@@ -18,6 +18,8 @@ BOOL "TRUE"|"FALSE"
 
 "\n"		{}
 
+"//"        {}
+
 {DELIM} 	{}
 
 "main"		{return TK_MAIN;}
@@ -36,7 +38,11 @@ BOOL "TRUE"|"FALSE"
 
 "bool"		{yylval.label = "bool"; yylval.traducao = yytext; return TK_TIPO_BOOL;}
 
-[(){}[\];,=]	{ return *yytext; }
+[(){}[\];,=<>]	{ return *yytext; }
+
+"<="        {return TK_LE;}
+
+">="        {return TK_HE;}
 
 [+\-*/]		{ return *yytext; }
 

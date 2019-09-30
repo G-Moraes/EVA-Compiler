@@ -1,10 +1,4 @@
 int main()
 {
-	var catapimbas int = 3;
-	catapimbas = 1 + (5 * 4);
-	catapimbas = (f) 5.0 + 4;
-	catapimbas = (i) 7;
-	var i bool = TRUE;
-	i = 5 < 4;
-	var t int;
+	var i bool = 5 <= 4;
 }

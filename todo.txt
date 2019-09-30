@@ -8,9 +8,8 @@
 *Conversão de tipos
 	*Implícita
 	*Explícita
+*Operações relacionais
 
 -A fazer
 
 *Operações lógicas
-*Operações relacionais
-

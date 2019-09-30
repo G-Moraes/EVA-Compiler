@@ -3,7 +3,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
-#include <vector> 
+#include <vector>
 using std::string;
 using std::getline;
 
@@ -44,13 +44,14 @@ void printVector();
 
 %token TK_MAIN TK_ID
 %token TK_DEC_VAR TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_BOOL TK_TIPO_CHAR
-%token TK_CONV_FLOAT TK_CONV_INT
+%token TK_CONV_FLOAT TK_CONV_INT TK_LE TK_HE
 %token TK_CHAR TK_FLOAT TK_BOOL TK_NUM
 %token TK_FIM TK_ERROR
 
 %start S
 
 %right '='
+%left '<' '>' TK_HE TK_LE
 %left '+' '-'
 %left '*' '/'
 %left '(' ')'
@@ -91,7 +92,7 @@ COMANDO 	: E ';'
 			{
 				$$ = $1;
 			}
-			
+
 			| DECLARACAO ';'
 			{
 				$$ = $1;
@@ -119,10 +120,10 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 				addVarToTempVector("\tfloat " + nomeAuxID +  ";\n");
 			}
 
-			| TK_DEC_VAR TK_ID TK_TIPO_BOOL '=' TK_BOOL
+			| TK_DEC_VAR TK_ID TK_TIPO_BOOL '=' E
 			{
 				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
-				$$.traducao = "\t" + nomeAuxID + " = " + $5.traducao + ";\n";
+				$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
 				addVarToTempVector("\tint " + nomeAuxID + ";\n");
 			}
 
@@ -144,31 +145,8 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 			{
 				$$.label = addVarToTabSym($1.label, $4.traducao, "int");
 				$$.tipo = explicitConversion($4.tipo, "int");
-				$$.traducao = $4.traducao + "\t" + $$.label + " =  (int) " + $4.label + ";\n";
+				$$.traducao = $4.traducao + "\t" + $$.label + " = (int) " + $4.label + ";\n";
 			}
-
-			| TK_ID '=' E '<' E
-			{
-				cout << "calabouço\n" << endl;
-				$$.label = genLabel();
-				$$.tipo = "int";
-				
-			}	
-			/*
-			| E '>' E
-			{
-
-			}
-
-			| E "<=" E
-			{
-
-			}
-
-			| E ">=" E
-			{
-
-			}*/
 			;
 
 DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
@@ -199,9 +177,9 @@ DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 				addVarToTempVector("\tint " + nomeAuxID + ";\n");
 			}
 
-			; 
+			;
 
-E 			: E '+' E
+E 		: E '+' E
 			{
 				$$.label = genLabel();
 				$$.tipo = implicitConversion($1.tipo, $3.tipo);
@@ -212,15 +190,15 @@ E 			: E '+' E
 			| E '-' E
 			{
 				$$.label = genLabel();
-				$$.tipo = implicitConversion($1.tipo, $3.tipo); 
+				$$.tipo = implicitConversion($1.tipo, $3.tipo);
 				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " - " + $3.label + ";\n";
-				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");						
+				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
 
 			| E '*' E
 			{
 				$$.label = genLabel();
-				$$.tipo = implicitConversion($1.tipo, $3.tipo); 
+				$$.tipo = implicitConversion($1.tipo, $3.tipo);
 				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " * " + $3.label + ";\n";
 				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
@@ -233,6 +211,38 @@ E 			: E '+' E
 				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
 
+			| E '<' E
+			{
+				$$.label = genLabel();
+				$$.tipo = "int";
+				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " < " + $3.label + ";\n";
+				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
+			}
+
+			| E '>' E
+			{
+				$$.label = genLabel();
+				$$.tipo = "int";
+				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " > " + $3.label + ";\n";
+				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
+			}
+
+			| E TK_LE E
+			{
+				$$.label = genLabel();
+				$$.tipo = "int";
+				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " <= " + $3.label + ";\n";
+				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
+			}
+
+			| E TK_HE E
+			{
+				$$.label = genLabel();
+				$$.tipo = "int";
+				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " >= " + $3.label + ";\n";
+				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
+			}
+
 			| '(' E ')'
 			{
 				$$ = $2;
@@ -240,7 +250,7 @@ E 			: E '+' E
 
 			| TK_NUM
 			{
-				$$.label ="nomeTemporarioInt" + to_string(valorTemp++); 
+				$$.label ="nomeTemporarioInt" + to_string(valorTemp++);
 				$$.tipo = "int";
 				addVarToTempVector("\tint "  + $$.label + ";\n");
 
@@ -334,15 +344,15 @@ string implicitConversion(string tipo0, string tipo1)
 {
 	if(tipo1 == "int" && tipo0 == "float" || tipo0 == "int" && tipo1 == "float")
     {
-    	
+
     	string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
     	addVarToTempVector("\tfloat " + nomeAuxID + ";\n");
     	return "float";
-    	
+
     }
 
     else if(tipo0 == "float" && tipo1 == "float")
-    {	
+    {
 
     	string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
     	addVarToTempVector("\tfloat" + nomeAuxID + ";\n");
