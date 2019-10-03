@@ -1,4 +1,5 @@
 int main()
 {
-	var c bool = (TRUE | 1) < 2;
+	var a bool;
+	a = TRUE == FALSE;
 }
