@@ -1,5 +1,7 @@
 int main()
 {
-	var a bool;
-	a = TRUE == FALSE;
+	var c int;
+	c = 12;
+	var d float = 2.5;
+	c = 'c';
 }

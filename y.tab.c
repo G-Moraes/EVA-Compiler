@@ -1440,11 +1440,11 @@ yyreduce:
   case 13:
 #line 140 "sintatica.y" /* yacc.c:1646  */
     {
-				string nomeAuxID = addVarToTabSym((yyvsp[-2]).label, (yyvsp[0]).traducao, (yyvsp[0]).tipo);
+				string nomeAuxID = genLabel();
 
 				if((yyvsp[0]).tipo != tabSym[(yyvsp[-2]).label].tipo){
 
-					(yyval).tipo = tabSym[(yyvsp[-2]).label].tipo;
+					(yyval).tipo = implicitConversion((yyvsp[0]).tipo, tabSym[(yyvsp[-2]).label].tipo);
 					(yyval).traducao = (yyvsp[0]).traducao + "\t" + nomeAuxID + " = " + "("+ (yyval).tipo + ") " + (yyvsp[0]).label + ";\n";
 				}
 
@@ -1491,7 +1491,7 @@ yyreduce:
     {
 				string nomeAuxID = addVarToTabSym((yyvsp[-1]).label, "0", "int");
 				//$$.traducao ="\t" + nomeAuxID + ";\n";
-				cout << (yyvsp[0]).label << " = " << (yyvsp[0]).traducao << endl;
+				//cout << $3.label << " = " << $3.traducao << endl;
 				addVarToTempVector("\tint " + nomeAuxID + ";\n");
 			}
 #line 1498 "y.tab.c" /* yacc.c:1646  */
@@ -2154,7 +2154,6 @@ string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar){
 string implicitConversion(string tipo0, string tipo1)
 {
 
-	cout << "+-+- conversao" << endl;
 	if(tipo1 == "int" && tipo0 == "float" || tipo0 == "int" && tipo1 == "float")
     {
 
@@ -2168,7 +2167,7 @@ string implicitConversion(string tipo0, string tipo1)
     {
 
     	string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
-    	addVarToTempVector("\tfloat" + nomeAuxID + ";\n");
+    	addVarToTempVector("\tfloat " + nomeAuxID + ";\n");
     	return "float";
     }
 
@@ -2224,7 +2223,6 @@ string isBoolean(string tipo0, string tipo1)
 {
 	if (tipo1 != "bool" || tipo0 != "bool")
 	{
-		//cout << "Operacao logica sem tipo booleano!\n" << endl;
 		yyerror("Operacao logica sem tipo booleano!\n");
 	}
 

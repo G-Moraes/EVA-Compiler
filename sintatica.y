@@ -138,11 +138,11 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 
 			| TK_ID '=' E
 			{
-				string nomeAuxID = addVarToTabSym($1.label, $3.traducao, $3.tipo);
+				string nomeAuxID = genLabel();
 
 				if($3.tipo != tabSym[$1.label].tipo){
 
-					$$.tipo = tabSym[$1.label].tipo;
+					$$.tipo = implicitConversion($3.tipo, tabSym[$1.label].tipo);
 					$$.traducao = $3.traducao + "\t" + nomeAuxID + " = " + "("+ $$.tipo + ") " + $3.label + ";\n";
 				}
 
@@ -170,29 +170,24 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 			{
 				string nomeAuxID = addVarToTabSym($2.label, "none", "char");
-				//$$.traducao = "\t" + nomeAuxID + ";\n";
 				addVarToTempVector("\tchar " + nomeAuxID +  ";\n");
 			}
 
 			| TK_DEC_VAR TK_ID TK_TIPO_INT
 			{
 				string nomeAuxID = addVarToTabSym($2.label, "0", "int");
-				//$$.traducao ="\t" + nomeAuxID + ";\n";
-				cout << $3.label << " = " << $3.traducao << endl;
 				addVarToTempVector("\tint " + nomeAuxID + ";\n");
 			}
 
 			| TK_DEC_VAR TK_ID TK_TIPO_FLOAT
 			{
 				string nomeAuxID = addVarToTabSym($2.label, "0.0", "float");
-				//$$.traducao = "\t" + nomeAuxID + ";\n";
 				addVarToTempVector("\tfloat " + nomeAuxID + ";\n");
 			}
 
 			| TK_DEC_VAR TK_ID TK_TIPO_BOOL
 			{
 				string nomeAuxID = addVarToTabSym($2.label, "TRUE", "bool");
-				//$$.traducao = "\t" + nomeAuxID + ";\n";
 				addVarToTempVector("\tint " + nomeAuxID + ";\n");
 			}
 			;
@@ -547,7 +542,6 @@ string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar){
 string implicitConversion(string tipo0, string tipo1)
 {
 
-	cout << "+-+- conversao" << endl;
 	if(tipo1 == "int" && tipo0 == "float" || tipo0 == "int" && tipo1 == "float")
     {
 
@@ -561,7 +555,7 @@ string implicitConversion(string tipo0, string tipo1)
     {
 
     	string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
-    	addVarToTempVector("\tfloat" + nomeAuxID + ";\n");
+    	addVarToTempVector("\tfloat " + nomeAuxID + ";\n");
     	return "float";
     }
 
@@ -617,7 +611,6 @@ string isBoolean(string tipo0, string tipo1)
 {
 	if (tipo1 != "bool" || tipo0 != "bool")
 	{
-		//cout << "Operacao logica sem tipo booleano!\n" << endl;
 		yyerror("Operacao logica sem tipo booleano!\n");
 	}
 
