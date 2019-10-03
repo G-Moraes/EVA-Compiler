@@ -1,4 +1,4 @@
 int main()
 {
-	var i bool = 5 <= 4;
+	var c bool = (TRUE | 1) < 2;
 }
