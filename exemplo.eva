@@ -1,7 +1,6 @@
 int main()
 {
 	var c int;
-	c = 12;
 	var d float = 2.5;
-	c = 'c';
+	c = d + d < 10;
 }

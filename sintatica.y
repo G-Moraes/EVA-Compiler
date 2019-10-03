@@ -39,7 +39,7 @@ string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar);
 string implicitConversion(string tipo0, string tipo1);
 string explicitConversion(string tipo0, string tipo1);
 string isBoolean(string tipo0, string tipo1);
-void erroTipo(string tipo0, string tipo1);
+int erroTipo(string tipo0, string tipo1);
 void addVarToTempVector(string nomeVar);
 void printVector();
 %}
@@ -138,32 +138,59 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 
 			| TK_ID '=' E
 			{
-				string nomeAuxID = genLabel();
 
-				if($3.tipo != tabSym[$1.label].tipo){
+				if(($3.tipo != tabSym[$1.label].tipo)){
 
-					$$.tipo = implicitConversion($3.tipo, tabSym[$1.label].tipo);
-					$$.traducao = $3.traducao + "\t" + nomeAuxID + " = " + "("+ $$.tipo + ") " + $3.label + ";\n";
+					if(($3.tipo == "char" && tabSym[$1.label].tipo != "char") || ($3.tipo == "bool" && tabSym[$1.label].tipo != "bool")){
+						string msgError = "Atribuição de " + $3.tipo + " em " + tabSym[$1.label].tipo  + " é inválida!\n";
+						yyerror(msgError);
+					}
+
+					else{
+						$$.tipo = tabSym[$1.label].tipo;
+						$$.traducao = $3.traducao + "\t" + tabSym[$1.label].nome + " = " + "("+ tabSym[$1.label].tipo + ") " + $3.label + ";\n";
+
+					}
 				}
 
 				else{
 					$$.tipo = $3.tipo;
-					$$.traducao = $3.traducao + "\t" + nomeAuxID + " = " + $3.label + ";\n";
+					$$.traducao = $3.traducao + "\t" + tabSym[$1.label].nome + " = " + $3.label + ";\n";
 				}
 			}
 
 			| TK_ID '=' TK_CONV_FLOAT E
 			{
-				$$.label = addVarToTabSym($1.label, $4.traducao, "float");
-				$$.tipo = explicitConversion($4.tipo, "float");
-				$$.traducao = $4.traducao + "\t" + $$.label + " = (float) " + $4.label + ";\n";
+
+				if(($4.tipo == "char" && tabSym[$1.label].tipo != "char") || ($4.tipo == "bool" && tabSym[$1.label].tipo != "bool")){
+					string msgError = "Atribuição de " + $4.tipo + " em " + tabSym[$1.label].tipo  + " é inválida!\n";
+					yyerror(msgError);
+				}
+
+				else{
+
+					if((tabSym[$1.label].tipo == "int") && $4.tipo == "float"){
+
+						cout << "Conversão para float em "<< tabSym[$1.label].nome << " não suportada! Resultado será armazenado como inteiro!\n" << endl;
+							$$.traducao = $4.traducao + "\t" + tabSym[$1.label].nome + " = " + $4.label + ";\n";
+					}
+					else{
+							$$.traducao = $4.traducao + "\t" + tabSym[$1.label].nome + " = (float) " + $4.label + ";\n";
+					}
+				}
 			}
 
 			| TK_ID '=' TK_CONV_INT E
 			{
-				$$.label = addVarToTabSym($1.label, $4.traducao, "int");
-				$$.tipo = explicitConversion($4.tipo, "int");
-				$$.traducao = $4.traducao + "\t" + $$.label + " = (int) " + $4.label + ";\n";
+				if(($4.tipo == "char" && tabSym[$1.label].tipo != "char") || ($4.tipo == "bool" && tabSym[$1.label].tipo != "bool")){
+					string msgError = "Atribuição de " + $4.tipo + " em " + tabSym[$1.label].tipo  + " é inválida!\n";
+					yyerror(msgError);
+				}
+
+				else{
+
+					$$.traducao = $4.traducao + "\t" + tabSym[$1.label].nome + " = (int) " + $4.label + ";\n";
+				}
 			}
 			;
 
@@ -622,10 +649,12 @@ string isBoolean(string tipo0, string tipo1)
 	return "";
 }
 
-void erroTipo(string tipo0, string tipo1)
+int erroTipo(string tipo0, string tipo1)
 {
 	if (tipo1 != tipo0)
 	{
 		yyerror("tipo de variaveis incompativeis\n");
+
 	}
+			return 0;
 }
