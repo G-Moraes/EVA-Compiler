@@ -114,17 +114,29 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 
 			| TK_DEC_VAR TK_ID TK_TIPO_INT '=' E
 			{
-				erroTipo("int", $5.tipo);
+				$$.tipo = implicitConversion("int", $5.tipo);	
 				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
-				$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
+				
+				if($$.tipo != $5.tipo){
+					$$.traducao = $5.traducao + "\t" + nomeAuxID + " = (int) " + $5.label + ";\n";
+				}
+				else{
+					$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
+				}
 				addVarToTempVector("\tint " + nomeAuxID +  ";\n");
 			}
 
 			| TK_DEC_VAR TK_ID TK_TIPO_FLOAT '=' E
 			{
-				erroTipo("float", $5.tipo);
+				$$.tipo = implicitConversion("float", $5.tipo);	
 				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "float");
-				$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
+				
+				if($$.tipo != $5.tipo){
+					$$.traducao = $5.traducao + "\t" + nomeAuxID + " = (float) " + $5.label + ";\n";
+				}
+				else{
+					$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
+				}
 				addVarToTempVector("\tfloat " + nomeAuxID +  ";\n");
 			}
 
@@ -573,7 +585,6 @@ string implicitConversion(string tipo0, string tipo1)
     {
 
     	string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
-    	addVarToTempVector("\tfloat " + nomeAuxID + ";\n");
     	return "float";
 
     }
@@ -582,7 +593,6 @@ string implicitConversion(string tipo0, string tipo1)
     {
 
     	string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
-    	addVarToTempVector("\tfloat " + nomeAuxID + ";\n");
     	return "float";
     }
 
@@ -590,7 +600,6 @@ string implicitConversion(string tipo0, string tipo1)
     {
 
     	string nomeAuxID = "nomeTemporarioInt" + to_string(valorTemp);
-    	addVarToTempVector("\tint " + nomeAuxID + ";\n");
     	return "int";
     }
 
