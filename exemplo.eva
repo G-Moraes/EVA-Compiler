@@ -1,5 +1,4 @@
 int main()
 {
-	var c int = 3+4;
-	var d float = c;
+	var c int = 3 + 4.0;
 }

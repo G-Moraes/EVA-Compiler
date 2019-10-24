@@ -26,6 +26,13 @@ struct atributos
 	string traducao;
 };
 
+typedef struct{
+
+	string implicita;
+	string nomeVar;
+	string varConvertida;
+} structAux;
+
 int valorVar = 0;
 int valorTemp = 0;
 unordered_map <string, variable> tabSym;
@@ -36,7 +43,7 @@ int yylex(void);
 void yyerror(string);
 string genLabel();
 string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar);
-string implicitConversion(string tipo0, string tipo1);
+structAux implicitConversion(string tipo0, string tipo1, string nome0, string nome1);
 string explicitConversion(string tipo0, string tipo1);
 string isBoolean(string tipo0, string tipo1);
 int erroTipo(string tipo0, string tipo1);
@@ -114,9 +121,9 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 
 			| TK_DEC_VAR TK_ID TK_TIPO_INT '=' E
 			{
-				$$.tipo = implicitConversion("int", $5.tipo);	
+				//$$.tipo = implicitConversion("int", $5.tipo);	
 				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
-				
+				cout << "SOU DO TIPO " << $$.tipo <<endl;
 				if($$.tipo != $5.tipo){
 					$$.traducao = $5.traducao + "\t" + nomeAuxID + " = (int) " + $5.label + ";\n";
 				}
@@ -128,7 +135,7 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 
 			| TK_DEC_VAR TK_ID TK_TIPO_FLOAT '=' E
 			{
-				$$.tipo = implicitConversion("float", $5.tipo);	
+				//$$.tipo = implicitConversion("float", $5.tipo);	
 				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "float");
 				
 				if($$.tipo != $5.tipo){
@@ -234,24 +241,43 @@ DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 E 		: E '+' E
 			{
 				$$.label = genLabel();
-				$$.tipo = implicitConversion($1.tipo, $3.tipo);
-				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " + " + $3.label + ";\n";
+				structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
+				if(aux.varConvertida == $1.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " + " + $3.label + ";\n";
+				}
+				else if(aux.varConvertida == $3.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " + " + aux.nomeVar + ";\n";
+				}
 				addVarToTempVector("\t" + $$.tipo + " " + $$.label  + ";\n");
 			}
 
 			| E '-' E
 			{
 				$$.label = genLabel();
-				$$.tipo = implicitConversion($1.tipo, $3.tipo);
-				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " - " + $3.label + ";\n";
+				structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
+				if(aux.varConvertida == $1.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " - " + $3.label + ";\n";
+				}
+				else if(aux.varConvertida == $3.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " - " + aux.nomeVar + ";\n";
+				}
+				//$$.tipo = implicitConversion($1.tipo, $3.tipo);
+				//$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " - " + $3.label + ";\n";
 				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
 
 			| E '*' E
 			{
 				$$.label = genLabel();
-				$$.tipo = implicitConversion($1.tipo, $3.tipo);
-				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " * " + $3.label + ";\n";
+				structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
+				if(aux.varConvertida == $1.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " * " + $3.label + ";\n";
+				}
+				else if(aux.varConvertida == $3.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " * " + aux.nomeVar + ";\n";
+				}
+				//$$.tipo = implicitConversion($1.tipo, $3.tipo);
+				//$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " * " + $3.label + ";\n";
 				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
 
@@ -555,10 +581,10 @@ string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar){
 		nomeGerado = genLabel();
 
 		Var = {
-						.tipo = tipoVar,
+					.tipo = tipoVar,
 			   		.nome = nomeGerado,
-						.valor = conteudoVar
-			  	};
+					.valor = conteudoVar
+			  };
 
 		tabSym[nomeDado] = Var;
 		return tabSym[nomeDado].nome;
@@ -578,14 +604,39 @@ string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar){
 	return "";
 }
 
-string implicitConversion(string tipo0, string tipo1)
-{
+structAux implicitConversion(string tipo0, string tipo1, string nome0, string nome1){
 
-	if(tipo1 == "int" && tipo0 == "float" || tipo0 == "int" && tipo1 == "float")
+	if(tipo0 == "float" && tipo1 == "int"){
+
+		string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
+		addVarToTempVector(nomeAuxID);
+		string stringRetorno = "\t" + nomeAuxID + " = (float) " + nome1 + ";\n";
+		
+		structAux aux = {
+
+							.implicita = stringRetorno,
+							.nomeVar = nomeAuxID,
+							.varConvertida = nome1
+						};
+
+		return aux;
+	} 
+
+	else if(tipo0 == "int" && tipo1 == "float")
     {
 
     	string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
-    	return "float";
+    	addVarToTempVector(nomeAuxID);
+		string stringRetorno = "\t" + nomeAuxID + " = (float) " + nome0 + ";\n";
+		
+		structAux aux = {
+
+							.implicita = stringRetorno,
+							.nomeVar = nomeAuxID,
+							.varConvertida = nome0
+						};
+
+		return aux;
 
     }
 
@@ -593,22 +644,22 @@ string implicitConversion(string tipo0, string tipo1)
     {
 
     	string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
-    	return "float";
+    	//return "float";
     }
 
     else if(tipo0 == "int" && tipo1 == "int")
     {
 
     	string nomeAuxID = "nomeTemporarioInt" + to_string(valorTemp);
-    	return "int";
+    	//return "int";
     }
 
     else
     {
-    	yyerror("nao e possivel realizar operacoes com tipos nao numericos!\n");
+    	yyerror("Nao e possivel realizar operacoes com tipos nao numericos!\n");
     }
 
-    return "";
+    //return "";
 }
 
 string explicitConversion(string tipo0, string tipo1){
