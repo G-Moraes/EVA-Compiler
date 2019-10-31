@@ -121,35 +121,24 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 
 			| TK_DEC_VAR TK_ID TK_TIPO_INT '=' E
 			{
-				//$$.tipo = implicitConversion("int", $5.tipo);	
+				$$.tipo = "int";
 				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
-				cout << "SOU DO TIPO " << $$.tipo <<endl;
-				if($$.tipo != $5.tipo){
-					$$.traducao = $5.traducao + "\t" + nomeAuxID + " = (int) " + $5.label + ";\n";
-				}
-				else{
-					$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
-				}
+				cout << "SOU DO TIPO " << $5.tipo << endl;
+				$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
 				addVarToTempVector("\tint " + nomeAuxID +  ";\n");
 			}
 
 			| TK_DEC_VAR TK_ID TK_TIPO_FLOAT '=' E
 			{
-				//$$.tipo = implicitConversion("float", $5.tipo);	
+				$$.tipo = "float";
 				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "float");
-				
-				if($$.tipo != $5.tipo){
-					$$.traducao = $5.traducao + "\t" + nomeAuxID + " = (float) " + $5.label + ";\n";
-				}
-				else{
-					$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
-				}
+				$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
 				addVarToTempVector("\tfloat " + nomeAuxID +  ";\n");
 			}
 
 			| TK_DEC_VAR TK_ID TK_TIPO_BOOL '=' E
 			{
-				erroTipo("bool", $5.tipo);
+				//erroTipo("bool", $5.tipo);
 				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "bool");
 				$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
 				addVarToTempVector("\tint " + nomeAuxID + ";\n");
@@ -242,11 +231,14 @@ E 		: E '+' E
 			{
 				$$.label = genLabel();
 				structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
-				if(aux.varConvertida == $1.label){
+				if(aux.varConvertida == $1.label){ //se primeira variável for int, muda pra float e entra nesse if
 					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " + " + $3.label + ";\n";
 				}
-				else if(aux.varConvertida == $3.label){
+				else if(aux.varConvertida == $3.label){ //se segunda variável for int, muda pra float e entra nesse else
 					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " + " + aux.nomeVar + ";\n";
+				}
+				else{ //se as duas variáveis são do mesmo tipo
+					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " + " + $3.label + ";\n";
 				}
 				addVarToTempVector("\t" + $$.tipo + " " + $$.label  + ";\n");
 			}
@@ -261,8 +253,9 @@ E 		: E '+' E
 				else if(aux.varConvertida == $3.label){
 					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " - " + aux.nomeVar + ";\n";
 				}
-				//$$.tipo = implicitConversion($1.tipo, $3.tipo);
-				//$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " - " + $3.label + ";\n";
+				else{ //se as duas variáveis são do mesmo tipo
+					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " - " + $3.label + ";\n";
+				}
 				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
 
@@ -276,140 +269,107 @@ E 		: E '+' E
 				else if(aux.varConvertida == $3.label){
 					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " * " + aux.nomeVar + ";\n";
 				}
-				//$$.tipo = implicitConversion($1.tipo, $3.tipo);
-				//$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " * " + $3.label + ";\n";
+				else{ //se as duas variáveis são do mesmo tipo
+					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " * " + $3.label + ";\n";
+				}
 				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
 
 			| E '/' E
 			{
 				$$.label = genLabel();
-				$$.tipo = "float";
-				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " / " + $3.label + ";\n";
+				structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
+				if(aux.varConvertida == $1.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " / " + $3.label + ";\n";
+				}
+				else if(aux.varConvertida == $3.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " / " + aux.nomeVar + ";\n";
+				}
+				else{ //se as duas variáveis são do mesmo tipo
+					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " / " + $3.label + ";\n";
+				}
 				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
 
 			| E '<' E
 			{
 				$$.label = genLabel();
-				$$.tipo = "bool";
-
-				if(($1.tipo != $3.tipo) && ($1.tipo == "int" && $3.tipo == "float")){
-
-					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " < (int) " + $3.label + ";\n";
-					addVarToTempVector("\tint " + $$.label + ";\n");
+				//$$.tipo = "bool";
+				cout << "SOU DO TIPO " << $$.tipo << endl;
+				structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
+				if(aux.varConvertida == $1.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " < " + $3.label + ";\n";
 				}
-
-				else if(($1.tipo != $3.tipo) && ($1.tipo == "float" && $3.tipo == "int")){
-
-					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = (int) " + $1.label + " < " + $3.label + ";\n";
-					addVarToTempVector("\tint " + $$.label + ";\n");
+				else if(aux.varConvertida == $3.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " < " + aux.nomeVar + ";\n";
 				}
-
-				else if(($1.tipo == "bool" || $3.tipo == "bool") ||($1.tipo == "char" || $1.tipo == "char" )){
-
-					yyerror("Não é possível operar utilizando booleano ou char!\n");
-				}
-
-				else{
-
+				else{ //se as duas variáveis são do mesmo tipo
 					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " < " + $3.label + ";\n";
-					addVarToTempVector("\tint " + $$.label + ";\n");
 				}
+
+				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
 
 			| E '>' E
 			{
 				$$.label = genLabel();
-				$$.tipo = "bool";
+				cout << "SOU DO TIPO " << $$.tipo << endl;
+				structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
 
-				if(($1.tipo != $3.tipo) && ($1.tipo == "int" && $3.tipo == "float")){
-
-					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " > (int) " + $3.label + ";\n";
-					addVarToTempVector("\tint " + $$.label + ";\n");
+				if(aux.varConvertida == $1.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " > " + $3.label + ";\n";
 				}
-
-				else if(($1.tipo != $3.tipo) && ($1.tipo == "float" && $3.tipo == "int")){
-
-					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = (int) " + $1.label + " > " + $3.label + ";\n";
-					addVarToTempVector("\tint " + $$.label + ";\n");
+				else if(aux.varConvertida == $3.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " > " + aux.nomeVar + ";\n";
 				}
-
-				else if(($1.tipo == "bool" || $3.tipo == "bool") ||($1.tipo == "char" || $1.tipo == "char" )){
-
-					yyerror("Não é possível operar utilizando booleano ou char!\n");
-				}
-
-				else{
-
+				else{ //se as duas variáveis são do mesmo tipo
 					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " > " + $3.label + ";\n";
-					addVarToTempVector("\tint " + $$.label + ";\n");
 				}
+
+				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
 
 			| E TK_LE E
 			{
 				$$.label = genLabel();
-				$$.tipo = "bool";
-
-				if(($1.tipo != $3.tipo) && ($1.tipo == "int" && $3.tipo == "float")){
-
-					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " <= (int) " + $3.label + ";\n";
-					addVarToTempVector("\tint " + $$.label + ";\n");
+				cout << "SOU DO TIPO " << $$.tipo << endl;
+				structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
+				if(aux.varConvertida == $1.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " <= " + $3.label + ";\n";
 				}
-
-				else if(($1.tipo != $3.tipo) && ($1.tipo == "float" && $3.tipo == "int")){
-
-					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = (int) " + $1.label + " <= " + $3.label + ";\n";
-					addVarToTempVector("\tint " + $$.label + ";\n");
+				else if(aux.varConvertida == $3.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " <= " + aux.nomeVar + ";\n";
 				}
-
-				else if(($1.tipo == "bool" || $3.tipo == "bool") ||($1.tipo == "char" || $1.tipo == "char" )){
-
-					yyerror("Não é possível operar utilizando booleano ou char!\n");
-				}
-
-				else{
-
+				else{ //se as duas variáveis são do mesmo tipo
 					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " <= " + $3.label + ";\n";
-					addVarToTempVector("\tint " + $$.label + ";\n");
 				}
+
+				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
 
 			| E TK_HE E
 			{
 				$$.label = genLabel();
-				$$.tipo = "bool";
-
-				if(($1.tipo != $3.tipo) && ($1.tipo == "int" && $3.tipo == "float")){
-
-					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " >= (int) " + $3.label + ";\n";
-					addVarToTempVector("\tint " + $$.label + ";\n");
+				cout << "SOU DO TIPO " << $$.tipo << endl;
+				structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
+				if(aux.varConvertida == $1.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " >= " + $3.label + ";\n";
 				}
-
-				else if(($1.tipo != $3.tipo) && ($1.tipo == "float" && $3.tipo == "int")){
-
-					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = (int) " + $1.label + " >= " + $3.label + ";\n";
-					addVarToTempVector("\tint " + $$.label + ";\n");
+				else if(aux.varConvertida == $3.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " >= " + aux.nomeVar + ";\n";
 				}
-
-				else if(($1.tipo == "bool" || $3.tipo == "bool") ||($1.tipo == "char" || $1.tipo == "char" )){
-
-					yyerror("Não é possível operar utilizando booleano ou char!\n");
-				}
-
-				else{
-
+				else{ //se as duas variáveis são do mesmo tipo
 					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " >= " + $3.label + ";\n";
-					addVarToTempVector("\tint " + $$.label + ";\n");
 				}
+
+				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
 
 			| E '|' E
 			{
 				$$.label = genLabel();
 				$$.tipo = isBoolean($1.tipo, $3.tipo);
-				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " | " + $3.label + ";\n";
+				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " || " + $3.label + ";\n";
 				addVarToTempVector("\tint " + $$.label + ";\n");
 			}
 
@@ -417,7 +377,7 @@ E 		: E '+' E
 			{
 				$$.label = genLabel();
 				$$.tipo = isBoolean($1.tipo, $3.tipo);
-				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " & " + $3.label + ";\n";
+				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " && " + $3.label + ";\n";
 				addVarToTempVector("\tint " + $$.label + ";\n");
 			}
 
@@ -441,28 +401,18 @@ E 		: E '+' E
 				}
 
 				else{
-
-					if(($1.tipo != $3.tipo) && ($1.tipo == "int" && $3.tipo == "float")){
-
-						$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " == (int) " + $3.label + ";\n";
-						addVarToTempVector("\tint " + $$.label + ";\n");
+					structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
+					if(aux.varConvertida == $1.label){
+						$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " == " + $3.label + ";\n";
 					}
-
-					else if(($1.tipo != $3.tipo) && ($1.tipo == "float" && $3.tipo == "int")){
-
-						$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = (int) " + $1.label + " == " + $3.label + ";\n";
-						addVarToTempVector("\tint " + $$.label + ";\n");
+					else if(aux.varConvertida == $3.label){
+						$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " == " + aux.nomeVar + ";\n";
 					}
-
-					else if(($1.tipo == "char" || $1.tipo == "bool") || ($3.tipo == "char" || $3.tipo == "bool")){
-						yyerror("Não é permitido operações entre char/booleano com tipo numérico!\n");
-					}
-
-					else{
-
+					else{ //se as duas variáveis são do mesmo tipo
 						$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " == " + $3.label + ";\n";
-						addVarToTempVector("\tint " + $$.label + ";\n");
 					}
+					addVarToTempVector("\tint " + $$.label + ";\n");
+
 				}
 			}
 
@@ -478,27 +428,17 @@ E 		: E '+' E
 
 				else{
 
-					if(($1.tipo != $3.tipo) && ($1.tipo == "int" && $3.tipo == "float")){
-
-						$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " != (int) " + $3.label + ";\n";
-						addVarToTempVector("\tint " + $$.label + ";\n");
+					structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
+					if(aux.varConvertida == $1.label){
+						$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " != " + $3.label + ";\n";
 					}
-
-					else if(($1.tipo != $3.tipo) && ($1.tipo == "float" && $3.tipo == "int")){
-
-						$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = (int) " + $1.label + " != " + $3.label + ";\n";
-						addVarToTempVector("\tint " + $$.label + ";\n");
+					else if(aux.varConvertida == $3.label){
+						$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " != " + aux.nomeVar + ";\n";
 					}
-
-					else if(($1.tipo == "char" || $1.tipo == "bool") || ($3.tipo == "char" || $3.tipo == "bool")){
-						yyerror("Não é permitido operações entre char/booleano com tipo numérico!\n");
-					}
-
-					else{
-
+					else{ //se as duas variáveis são do mesmo tipo
 						$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " != " + $3.label + ";\n";
-						addVarToTempVector("\tint " + $$.label + ";\n");
 					}
+					addVarToTempVector("\tint " + $$.label + ";\n");
 				}
 			}
 
@@ -609,9 +549,9 @@ structAux implicitConversion(string tipo0, string tipo1, string nome0, string no
 	if(tipo0 == "float" && tipo1 == "int"){
 
 		string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
-		addVarToTempVector(nomeAuxID);
+		addVarToTempVector("\tfloat " + nomeAuxID + ";\n");
 		string stringRetorno = "\t" + nomeAuxID + " = (float) " + nome1 + ";\n";
-		
+
 		structAux aux = {
 
 							.implicita = stringRetorno,
@@ -620,44 +560,44 @@ structAux implicitConversion(string tipo0, string tipo1, string nome0, string no
 						};
 
 		return aux;
-	} 
+	}
 
 	else if(tipo0 == "int" && tipo1 == "float")
-    {
+  {
 
-    	string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
-    	addVarToTempVector(nomeAuxID);
+  	string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
+		addVarToTempVector("\tfloat " + nomeAuxID + ";\n");
 		string stringRetorno = "\t" + nomeAuxID + " = (float) " + nome0 + ";\n";
-		
+
 		structAux aux = {
 
-							.implicita = stringRetorno,
-							.nomeVar = nomeAuxID,
-							.varConvertida = nome0
-						};
+											.implicita = stringRetorno,
+											.nomeVar = nomeAuxID,
+											.varConvertida = nome0
+										};
 
 		return aux;
 
-    }
+  }
 
-    else if(tipo0 == "float" && tipo1 == "float")
-    {
+  else if(tipo0 == "float" && tipo1 == "float")
+  {
 
     	string nomeAuxID = "nomeTemporarioFloat" + to_string(valorTemp);
-    	//return "float";
+
     }
 
-    else if(tipo0 == "int" && tipo1 == "int")
-    {
+  else if(tipo0 == "int" && tipo1 == "int")
+  {
 
     	string nomeAuxID = "nomeTemporarioInt" + to_string(valorTemp);
     	//return "int";
     }
 
-    else
-    {
-    	yyerror("Nao e possivel realizar operacoes com tipos nao numericos!\n");
-    }
+  else
+  {
+    yyerror("Nao e possivel realizar operacoes com tipos nao numericos!\n");
+  }
 
     //return "";
 }
