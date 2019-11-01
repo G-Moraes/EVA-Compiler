@@ -47,45 +47,51 @@ extern int yydebug;
   {
     TK_MAIN = 258,
     TK_ID = 259,
-    TK_DEC_VAR = 260,
-    TK_TIPO_INT = 261,
-    TK_TIPO_FLOAT = 262,
-    TK_TIPO_BOOL = 263,
-    TK_TIPO_CHAR = 264,
-    TK_CONV_FLOAT = 265,
-    TK_CONV_INT = 266,
-    TK_LE = 267,
-    TK_HE = 268,
-    TK_EQ = 269,
-    TK_DIFF = 270,
-    TK_CHAR = 271,
-    TK_FLOAT = 272,
-    TK_BOOL = 273,
-    TK_NUM = 274,
-    TK_FIM = 275,
-    TK_ERROR = 276
+    TK_IF = 260,
+    TK_THEN = 261,
+    TK_END_LOOP = 262,
+    TK_DEC_VAR = 263,
+    TK_TIPO_INT = 264,
+    TK_TIPO_FLOAT = 265,
+    TK_TIPO_BOOL = 266,
+    TK_TIPO_CHAR = 267,
+    TK_CONV_FLOAT = 268,
+    TK_CONV_INT = 269,
+    TK_LE = 270,
+    TK_HE = 271,
+    TK_EQ = 272,
+    TK_DIFF = 273,
+    TK_CHAR = 274,
+    TK_FLOAT = 275,
+    TK_BOOL = 276,
+    TK_NUM = 277,
+    TK_FIM = 278,
+    TK_ERROR = 279
   };
 #endif
 /* Tokens.  */
 #define TK_MAIN 258
 #define TK_ID 259
-#define TK_DEC_VAR 260
-#define TK_TIPO_INT 261
-#define TK_TIPO_FLOAT 262
-#define TK_TIPO_BOOL 263
-#define TK_TIPO_CHAR 264
-#define TK_CONV_FLOAT 265
-#define TK_CONV_INT 266
-#define TK_LE 267
-#define TK_HE 268
-#define TK_EQ 269
-#define TK_DIFF 270
-#define TK_CHAR 271
-#define TK_FLOAT 272
-#define TK_BOOL 273
-#define TK_NUM 274
-#define TK_FIM 275
-#define TK_ERROR 276
+#define TK_IF 260
+#define TK_THEN 261
+#define TK_END_LOOP 262
+#define TK_DEC_VAR 263
+#define TK_TIPO_INT 264
+#define TK_TIPO_FLOAT 265
+#define TK_TIPO_BOOL 266
+#define TK_TIPO_CHAR 267
+#define TK_CONV_FLOAT 268
+#define TK_CONV_INT 269
+#define TK_LE 270
+#define TK_HE 271
+#define TK_EQ 272
+#define TK_DIFF 273
+#define TK_CHAR 274
+#define TK_FLOAT 275
+#define TK_BOOL 276
+#define TK_NUM 277
+#define TK_FIM 278
+#define TK_ERROR 279
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

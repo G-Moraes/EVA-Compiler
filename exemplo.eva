@@ -1,5 +1,8 @@
 int main()
 {
-	var a float = 3.4;
-	var d bool = 3 != 4.2;
+		if 5<2 then
+			var a int = 5 + 3;
+			var d bool = TRUE;
+		end;
+
 }
