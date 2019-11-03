@@ -36,6 +36,10 @@ BOOL "TRUE"|"FALSE"
 
 "end"       {return TK_END_LOOP;}
 
+"while"     {return TK_WHILE;}
+
+"do"        {return TK_DO;}
+
 "(f)"		{return TK_CONV_FLOAT;}
 
 "(i)"		{return TK_CONV_INT;}

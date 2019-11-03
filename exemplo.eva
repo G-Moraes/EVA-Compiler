@@ -1,8 +1,12 @@
 int main()
 {
-		if 5<2 then
-			var a int = 5 + 3;
-			var d bool = TRUE;
-		end;
 
+	var d bool = FALSE;
+	while(5<4){
+		var i int = 5;
+	}
+
+	do{
+		var i int = 5;
+	} while(5<4);
 }
