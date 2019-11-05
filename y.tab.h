@@ -48,54 +48,56 @@ extern int yydebug;
     TK_MAIN = 258,
     TK_ID = 259,
     TK_IF = 260,
-    TK_THEN = 261,
-    TK_END_LOOP = 262,
-    TK_WHILE = 263,
-    TK_DO = 264,
-    TK_DEC_VAR = 265,
-    TK_TIPO_INT = 266,
-    TK_TIPO_FLOAT = 267,
-    TK_TIPO_BOOL = 268,
-    TK_TIPO_CHAR = 269,
-    TK_CONV_FLOAT = 270,
-    TK_CONV_INT = 271,
-    TK_LE = 272,
-    TK_HE = 273,
-    TK_EQ = 274,
-    TK_DIFF = 275,
-    TK_CHAR = 276,
-    TK_FLOAT = 277,
-    TK_BOOL = 278,
-    TK_NUM = 279,
-    TK_FIM = 280,
-    TK_ERROR = 281
+    TK_ELSE = 261,
+    TK_THEN = 262,
+    TK_END_LOOP = 263,
+    TK_WHILE = 264,
+    TK_DO = 265,
+    TK_DEC_VAR = 266,
+    TK_TIPO_INT = 267,
+    TK_TIPO_FLOAT = 268,
+    TK_TIPO_BOOL = 269,
+    TK_TIPO_CHAR = 270,
+    TK_CONV_FLOAT = 271,
+    TK_CONV_INT = 272,
+    TK_LE = 273,
+    TK_HE = 274,
+    TK_EQ = 275,
+    TK_DIFF = 276,
+    TK_CHAR = 277,
+    TK_FLOAT = 278,
+    TK_BOOL = 279,
+    TK_NUM = 280,
+    TK_FIM = 281,
+    TK_ERROR = 282
   };
 #endif
 /* Tokens.  */
 #define TK_MAIN 258
 #define TK_ID 259
 #define TK_IF 260
-#define TK_THEN 261
-#define TK_END_LOOP 262
-#define TK_WHILE 263
-#define TK_DO 264
-#define TK_DEC_VAR 265
-#define TK_TIPO_INT 266
-#define TK_TIPO_FLOAT 267
-#define TK_TIPO_BOOL 268
-#define TK_TIPO_CHAR 269
-#define TK_CONV_FLOAT 270
-#define TK_CONV_INT 271
-#define TK_LE 272
-#define TK_HE 273
-#define TK_EQ 274
-#define TK_DIFF 275
-#define TK_CHAR 276
-#define TK_FLOAT 277
-#define TK_BOOL 278
-#define TK_NUM 279
-#define TK_FIM 280
-#define TK_ERROR 281
+#define TK_ELSE 261
+#define TK_THEN 262
+#define TK_END_LOOP 263
+#define TK_WHILE 264
+#define TK_DO 265
+#define TK_DEC_VAR 266
+#define TK_TIPO_INT 267
+#define TK_TIPO_FLOAT 268
+#define TK_TIPO_BOOL 269
+#define TK_TIPO_CHAR 270
+#define TK_CONV_FLOAT 271
+#define TK_CONV_INT 272
+#define TK_LE 273
+#define TK_HE 274
+#define TK_EQ 275
+#define TK_DIFF 276
+#define TK_CHAR 277
+#define TK_FLOAT 278
+#define TK_BOOL 279
+#define TK_NUM 280
+#define TK_FIM 281
+#define TK_ERROR 282
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

@@ -1,12 +1,11 @@
 int main()
 {
 
-	var d bool = FALSE;
-	while(5<4){
-		var i int = 5;
-	}
 
-	do{
+
+	//var d bool = FALSE;
+
+	if(5<4){
 		var i int = 5;
-	} while(5<4);
-}
+	} else
+		var c char = 'a';

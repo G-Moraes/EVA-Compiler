@@ -53,7 +53,7 @@ void addVarToTempVector(string nomeVar);
 void printVector();
 %}
 
-%token TK_MAIN TK_ID TK_IF TK_THEN TK_END_LOOP TK_WHILE TK_DO
+%token TK_MAIN TK_ID TK_IF TK_ELSE TK_THEN TK_END_LOOP TK_WHILE TK_DO
 %token TK_DEC_VAR TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_BOOL TK_TIPO_CHAR
 %token TK_CONV_FLOAT TK_CONV_INT TK_LE TK_HE TK_EQ TK_DIFF
 %token TK_CHAR TK_FLOAT TK_BOOL TK_NUM
@@ -246,8 +246,7 @@ IF 					: TK_IF {valorLoops++; stackLoops.push(valorLoops);} '(' E ')' BLOCO
 								stackLoops.pop();
 							}
 						}
-						|
-						TK_IF {valorLoops++; stackLoops.push(valorLoops);} E TK_THEN	COMANDOS TK_END_LOOP ';'
+						| TK_IF {valorLoops++; stackLoops.push(valorLoops);} E TK_THEN	COMANDOS TK_END_LOOP ';'
 						{
 							if($3.tipo != "bool"){
 								yyerror("Condicional sem declaração do tipo booleano!\n");
@@ -260,6 +259,22 @@ IF 					: TK_IF {valorLoops++; stackLoops.push(valorLoops);} '(' E ')' BLOCO
 								$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $3.traducao + "\n\t" + auxVar + " = " +
 								auxVar2 + ";\n\tif(" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n" + $5.traducao + "\tfinal" +
 								to_string(stackLoops.top()) + ":\n";
+								stackLoops.pop();
+							}
+						}
+						| TK_IF {valorLoops++; stackLoops.push(valorLoops);} '(' E ')' BLOCO TK_ELSE BLOCO
+						{
+							if($4.tipo != "bool"){
+								yyerror("Condicional sem declaração do tipo booleano!\n");
+							}
+
+							else{
+								string auxVar = "temp" + to_string(valorVar++);
+								addVarToTempVector("\tint " + auxVar + ";\n");
+								string auxVar2 = "!" + $4.label;
+								$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $4.traducao + "\n\t" + auxVar + " = " +
+								auxVar2 + ";\n\tif(" + auxVar + ") goto else" + to_string(stackLoops.top()) + ";\n" + $6.traducao + "\telse" +
+								to_string(stackLoops.top()) + ":\n" + $8.traducao;
 								stackLoops.pop();
 							}
 						}

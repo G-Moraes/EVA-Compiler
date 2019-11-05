@@ -34,6 +34,8 @@ BOOL "TRUE"|"FALSE"
 
 "then"      {return TK_THEN;}
 
+"else"      {return TK_ELSE;}
+
 "end"       {return TK_END_LOOP;}
 
 "while"     {return TK_WHILE;}
