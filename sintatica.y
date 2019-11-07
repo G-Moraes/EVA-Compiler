@@ -20,12 +20,12 @@ typedef struct{
 	string valor;
 } variable;
 
-struct atributos
+typedef struct Atributos
 {
 	string tipo;
 	string label;
 	string traducao;
-};
+} atributos;
 
 typedef struct{
 
@@ -69,6 +69,8 @@ void printVector();
 %left '+' '-'
 %left '*' '/'
 %left '(' ')'
+%nonassoc TK_IF
+%nonassoc TK_ELSE
 
 %%
 
@@ -97,24 +99,15 @@ COMANDOS	: COMANDO COMANDOS
 			}
 			;
 
-COMANDO 	: E ';'
-			{
-				$$ = $1;
-			}
-
-			| ATRIBUICAO ';'
-			{
-				$$ = $1;
-			}
-
-			| DECLARACAO ';'
-			{
-				$$ = $1;
-			}
-			|	IF
-			| WHILE
-			| DOWHILE ';'
-			;
+COMANDO 	:	CMD_ASSO
+						{
+							$$ = $1;
+						}
+						| CMD_NONA
+						{
+							$$ = $1;
+						}
+						;
 
 ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' TK_CHAR
 			{
@@ -230,55 +223,79 @@ DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 			}
 			;
 
-IF 					: TK_IF {valorLoops++; stackLoops.push(valorLoops);} '(' E ')' BLOCO
-						{
-					 		if($4.tipo != "bool"){
-								yyerror("Condicional sem declaração do tipo booleano!\n");
-							}
+CMD_ASSO 					: TK_IF {valorLoops++; stackLoops.push(valorLoops);} E TK_THEN CMD_ASSO TK_END_LOOP ';' TK_ELSE TK_THEN CMD_ASSO TK_END_LOOP ';'
+									{
+										if($3.tipo != "bool"){
+											yyerror("Condicional sem declaração do tipo booleano!\n");
+										}
 
-							else{
-								string auxVar = "temp" + to_string(valorVar++);
-								addVarToTempVector("\tint " + auxVar + ";\n");
-								string auxVar2 = "!" + $4.label;
-								$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $4.traducao + "\n\t" + auxVar + " = " +
-								auxVar2 + ";\n\tif(" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n" + $6.traducao + "\tfinal" +
-								to_string(stackLoops.top()) + ":\n";
-								stackLoops.pop();
-							}
-						}
-						| TK_IF {valorLoops++; stackLoops.push(valorLoops);} E TK_THEN	COMANDOS TK_END_LOOP ';'
-						{
-							if($3.tipo != "bool"){
-								yyerror("Condicional sem declaração do tipo booleano!\n");
-							}
+										else{
+											string auxVar = "temp" + to_string(valorVar++);
+											addVarToTempVector("\tint " + auxVar + ";\n");
+											string auxVar2 = "!" + $3.label;
+											$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $3.traducao + "\n\t" + auxVar + " = " +
+											auxVar2 + ";\n\tif(" + auxVar + ") goto else" + to_string(stackLoops.top()) + ";\n" + $5.traducao + "\tgoto final" +
+											to_string(stackLoops.top()) + ";\n\telse" + to_string(stackLoops.top()) + ":\n" + $10.traducao + "\tfinal" + to_string(stackLoops.top()) + ":\n";
+											stackLoops.pop();
+										}
+									}
+									| E ';'
+									{
+										$$ = $1;
+									}
 
-							else{
-								string auxVar = "temp" + to_string(valorVar++);
-								addVarToTempVector("\tint " + auxVar + ";\n");
-								string auxVar2 = "!" + $3.label;
-								$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $3.traducao + "\n\t" + auxVar + " = " +
-								auxVar2 + ";\n\tif(" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n" + $5.traducao + "\tfinal" +
-								to_string(stackLoops.top()) + ":\n";
-								stackLoops.pop();
-							}
-						}
-						| TK_IF {valorLoops++; stackLoops.push(valorLoops);} '(' E ')' BLOCO TK_ELSE BLOCO
-						{
-							if($4.tipo != "bool"){
-								yyerror("Condicional sem declaração do tipo booleano!\n");
-							}
+									| ATRIBUICAO ';'
+									{
+										$$ = $1;
+									}
 
-							else{
-								string auxVar = "temp" + to_string(valorVar++);
-								addVarToTempVector("\tint " + auxVar + ";\n");
-								string auxVar2 = "!" + $4.label;
-								$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $4.traducao + "\n\t" + auxVar + " = " +
-								auxVar2 + ";\n\tif(" + auxVar + ") goto else" + to_string(stackLoops.top()) + ";\n" + $6.traducao + "\telse" +
-								to_string(stackLoops.top()) + ":\n" + $8.traducao;
-								stackLoops.pop();
-							}
-						}
-						;
+									| DECLARACAO ';'
+									{
+										$$ = $1;
+									}
+									;
+
+CMD_NONA					:	TK_IF {valorLoops++; stackLoops.push(valorLoops);} E TK_THEN COMANDOS TK_END_LOOP ';'
+									{
+										if($3.tipo != "bool"){
+											yyerror("Condicional sem declaração do tipo booleano!\n");
+										}
+
+										else{
+											string auxVar = "temp" + to_string(valorVar++);
+											addVarToTempVector("\tint " + auxVar + ";\n");
+											string auxVar2 = "!" + $3.label;
+											$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $3.traducao + "\n\t" + auxVar + " = " +
+											auxVar2 + ";\n\tif(" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n" + $5.traducao + "\tfinal" +
+											to_string(stackLoops.top());
+											stackLoops.pop();
+										}
+									}
+									| TK_IF {valorLoops++; stackLoops.push(valorLoops);} E TK_THEN CMD_ASSO TK_END_LOOP ';' TK_ELSE TK_THEN CMD_NONA TK_END_LOOP ';'
+									{
+										if($3.tipo != "bool"){
+											yyerror("Condicional sem declaração do tipo booleano!\n");
+										}
+
+										else{
+											string auxVar = "temp" + to_string(valorVar++);
+											addVarToTempVector("\tint " + auxVar + ";\n");
+											string auxVar2 = "!" + $3.label;
+											$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $3.traducao + "\n\t" + auxVar + " = " +
+											auxVar2 + ";\n\tif(" + auxVar + ") goto else" + to_string(stackLoops.top()) + ";\n" + $5.traducao + "\tgoto final" +
+											to_string(stackLoops.top()) + ";\n\telse" + to_string(stackLoops.top()) + ":\n" + $10.traducao + "\tfinal" + to_string(stackLoops.top()) + ":\n";
+											stackLoops.pop();
+										}
+									}
+									| WHILE
+									{
+										$$ = $1;
+									}
+									| DOWHILE ';'
+									{
+										$$ = $1;
+									}
+									;
 
 WHILE 			: TK_WHILE {valorLoops++; stackLoops.push(valorLoops);} '(' E ')' BLOCO
 						{
