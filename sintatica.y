@@ -39,6 +39,7 @@ int valorTemp = 0;
 int valorLoops = 0;
 unordered_map <string, variable> tabSym;
 vector <string> tempVector;
+vector <unordered_map<string, variable>> pilhaContexto;
 stack <int> stackLoops;
 
 int yylex(void);
@@ -69,8 +70,6 @@ void printVector();
 %left '+' '-'
 %left '*' '/'
 %left '(' ')'
-%nonassoc TK_IF
-%nonassoc TK_ELSE
 
 %%
 
