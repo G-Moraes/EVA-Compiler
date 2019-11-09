@@ -1,4 +1,11 @@
 int main()
 {
+<<<<<<< HEAD
 	var c int = 4.0;
+=======
+	var c string = 'VERDE';
+	var b string = 'tchola';
+	var a string = b + c;
+
+>>>>>>> 2c107029f69aafe83a7b50f67ac356e982d30ca3
 }

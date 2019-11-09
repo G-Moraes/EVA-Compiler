@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.3.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2019 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,6 +30,9 @@
 
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
+
+/* Undocumented macros, especially those whose name start with YY_,
+   are private implementation details.  Do not rely on them.  */
 
 #ifndef YY_YY_Y_TAB_H_INCLUDED
 # define YY_YY_Y_TAB_H_INCLUDED
@@ -58,6 +62,7 @@ extern int yydebug;
     TK_TIPO_FLOAT = 268,
     TK_TIPO_BOOL = 269,
     TK_TIPO_CHAR = 270,
+<<<<<<< HEAD
     TK_CONV_FLOAT = 271,
     TK_CONV_INT = 272,
     TK_LE = 273,
@@ -70,6 +75,22 @@ extern int yydebug;
     TK_NUM = 280,
     TK_FIM = 281,
     TK_ERROR = 282
+=======
+    TK_TIPO_STRING = 271,
+    TK_CONV_FLOAT = 272,
+    TK_CONV_INT = 273,
+    TK_LE = 274,
+    TK_HE = 275,
+    TK_EQ = 276,
+    TK_DIFF = 277,
+    TK_CHAR = 278,
+    TK_FLOAT = 279,
+    TK_BOOL = 280,
+    TK_NUM = 281,
+    TK_STRING = 282,
+    TK_FIM = 283,
+    TK_ERROR = 284
+>>>>>>> 2c107029f69aafe83a7b50f67ac356e982d30ca3
   };
 #endif
 /* Tokens.  */
@@ -86,6 +107,7 @@ extern int yydebug;
 #define TK_TIPO_FLOAT 268
 #define TK_TIPO_BOOL 269
 #define TK_TIPO_CHAR 270
+<<<<<<< HEAD
 #define TK_CONV_FLOAT 271
 #define TK_CONV_INT 272
 #define TK_LE 273
@@ -98,6 +120,22 @@ extern int yydebug;
 #define TK_NUM 280
 #define TK_FIM 281
 #define TK_ERROR 282
+=======
+#define TK_TIPO_STRING 271
+#define TK_CONV_FLOAT 272
+#define TK_CONV_INT 273
+#define TK_LE 274
+#define TK_HE 275
+#define TK_EQ 276
+#define TK_DIFF 277
+#define TK_CHAR 278
+#define TK_FLOAT 279
+#define TK_BOOL 280
+#define TK_NUM 281
+#define TK_STRING 282
+#define TK_FIM 283
+#define TK_ERROR 284
+>>>>>>> 2c107029f69aafe83a7b50f67ac356e982d30ca3
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

@@ -13,6 +13,10 @@ REAL {NUM}+("."{NUM}+)?
 CHAR \'({LETRA}|{NUM})\'
 ID {LETRA}({LETRA}|{NUM})*
 BOOL "TRUE"|"FALSE"
+<<<<<<< HEAD
+=======
+STRING \'({LETRA}|{NUM})*\'
+>>>>>>> 2c107029f69aafe83a7b50f67ac356e982d30ca3
 
 %%
 
@@ -48,6 +52,11 @@ BOOL "TRUE"|"FALSE"
 
 "bool"		{yylval.label = "bool"; yylval.traducao = yytext; return TK_TIPO_BOOL;}
 
+<<<<<<< HEAD
+=======
+"string"	{return TK_TIPO_STRING;}
+
+>>>>>>> 2c107029f69aafe83a7b50f67ac356e982d30ca3
 [(){}[\];,=<>!|&]	{ return *yytext; }
 
 "<="        {return TK_LE;}
@@ -64,6 +73,10 @@ BOOL "TRUE"|"FALSE"
 {BOOL}		{ yylval.traducao = yytext; return TK_BOOL; }
 {CHAR}      { yylval.traducao = yytext; return TK_CHAR; }
 {REAL}      { yylval.traducao = yytext; return TK_FLOAT;}
+<<<<<<< HEAD
+=======
+{STRING}	{ yylval.traducao = yytext; return TK_STRING;}
+>>>>>>> 2c107029f69aafe83a7b50f67ac356e982d30ca3
 {ID}		{ yylval.label = yytext; return TK_ID;      }
 
 .			{ *yytext; }
