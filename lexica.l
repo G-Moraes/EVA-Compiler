@@ -43,6 +43,8 @@ STRING \'({LETRA}|{NUM})*\'
 
 "do"        {return TK_DO;}
 
+"for"		{return TK_FOR;}
+
 "(f)"		{return TK_CONV_FLOAT;}
 
 "(i)"		{return TK_CONV_INT;}

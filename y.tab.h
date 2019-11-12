@@ -53,25 +53,26 @@ extern int yydebug;
     TK_END_LOOP = 263,
     TK_WHILE = 264,
     TK_DO = 265,
-    TK_DEC_VAR = 266,
-    TK_TIPO_INT = 267,
-    TK_TIPO_FLOAT = 268,
-    TK_TIPO_BOOL = 269,
-    TK_TIPO_CHAR = 270,
-    TK_TIPO_STRING = 271,
-    TK_CONV_FLOAT = 272,
-    TK_CONV_INT = 273,
-    TK_LE = 274,
-    TK_HE = 275,
-    TK_EQ = 276,
-    TK_DIFF = 277,
-    TK_CHAR = 278,
-    TK_FLOAT = 279,
-    TK_BOOL = 280,
-    TK_NUM = 281,
-    TK_STRING = 282,
-    TK_FIM = 283,
-    TK_ERROR = 284
+    TK_FOR = 266,
+    TK_DEC_VAR = 267,
+    TK_TIPO_INT = 268,
+    TK_TIPO_FLOAT = 269,
+    TK_TIPO_BOOL = 270,
+    TK_TIPO_CHAR = 271,
+    TK_TIPO_STRING = 272,
+    TK_CONV_FLOAT = 273,
+    TK_CONV_INT = 274,
+    TK_LE = 275,
+    TK_HE = 276,
+    TK_EQ = 277,
+    TK_DIFF = 278,
+    TK_CHAR = 279,
+    TK_FLOAT = 280,
+    TK_BOOL = 281,
+    TK_NUM = 282,
+    TK_STRING = 283,
+    TK_FIM = 284,
+    TK_ERROR = 285
   };
 #endif
 /* Tokens.  */
@@ -83,25 +84,26 @@ extern int yydebug;
 #define TK_END_LOOP 263
 #define TK_WHILE 264
 #define TK_DO 265
-#define TK_DEC_VAR 266
-#define TK_TIPO_INT 267
-#define TK_TIPO_FLOAT 268
-#define TK_TIPO_BOOL 269
-#define TK_TIPO_CHAR 270
-#define TK_TIPO_STRING 271
-#define TK_CONV_FLOAT 272
-#define TK_CONV_INT 273
-#define TK_LE 274
-#define TK_HE 275
-#define TK_EQ 276
-#define TK_DIFF 277
-#define TK_CHAR 278
-#define TK_FLOAT 279
-#define TK_BOOL 280
-#define TK_NUM 281
-#define TK_STRING 282
-#define TK_FIM 283
-#define TK_ERROR 284
+#define TK_FOR 266
+#define TK_DEC_VAR 267
+#define TK_TIPO_INT 268
+#define TK_TIPO_FLOAT 269
+#define TK_TIPO_BOOL 270
+#define TK_TIPO_CHAR 271
+#define TK_TIPO_STRING 272
+#define TK_CONV_FLOAT 273
+#define TK_CONV_INT 274
+#define TK_LE 275
+#define TK_HE 276
+#define TK_EQ 277
+#define TK_DIFF 278
+#define TK_CHAR 279
+#define TK_FLOAT 280
+#define TK_BOOL 281
+#define TK_NUM 282
+#define TK_STRING 283
+#define TK_FIM 284
+#define TK_ERROR 285
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
