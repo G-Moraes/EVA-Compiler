@@ -1,8 +1,10 @@
 int main()
 {
-	var d int;
+	var d int = 2 + 2;
 	if 5 < 4 then
-		var c int;
-		d = 5;
+		//var c int = 2;
+		//var d int;
+		d = 5 + 3;
 	end;
+	//c = 2;
 }
