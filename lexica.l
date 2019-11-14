@@ -31,6 +31,8 @@ STRING \'({LETRA}|{NUM})*\'
 
 "var"       {return TK_DEC_VAR;}
 
+"global"    {return TK_GLOBAL;}
+
 "if"        {return TK_IF;}
 
 "then"      {return TK_THEN;}
@@ -45,9 +47,19 @@ STRING \'({LETRA}|{NUM})*\'
 
 "for"		{return TK_FOR;}
 
+"entrada"	{return TK_ENTRADA;}
+
+"saida"		{return TK_SAIDA;}
+
 "(f)"		{return TK_CONV_FLOAT;}
 
+"break" {return TK_BREAK;}
+
+"continue" {return TK_CONTINUE;}
+
 "(i)"		{return TK_CONV_INT;}
+
+"++"        {return TK_UN_POS;}
 
 "bool"		{yylval.label = "bool"; yylval.traducao = yytext; return TK_TIPO_BOOL;}
 

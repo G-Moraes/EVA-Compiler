@@ -1,7 +1,5 @@
 int main()
 {
-	for var i int = 0; 5 < 3; 4 +2; {
-
-		var u char;
-	}
+	var global c int = 45;
+	var c float = 1.0;
 }

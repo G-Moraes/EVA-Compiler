@@ -46,64 +46,76 @@ extern int yydebug;
   enum yytokentype
   {
     TK_MAIN = 258,
-    TK_ID = 259,
-    TK_IF = 260,
-    TK_ELSE = 261,
-    TK_THEN = 262,
-    TK_END_LOOP = 263,
-    TK_WHILE = 264,
-    TK_DO = 265,
-    TK_FOR = 266,
-    TK_DEC_VAR = 267,
-    TK_TIPO_INT = 268,
-    TK_TIPO_FLOAT = 269,
-    TK_TIPO_BOOL = 270,
-    TK_TIPO_CHAR = 271,
-    TK_TIPO_STRING = 272,
-    TK_CONV_FLOAT = 273,
-    TK_CONV_INT = 274,
-    TK_LE = 275,
-    TK_HE = 276,
-    TK_EQ = 277,
-    TK_DIFF = 278,
-    TK_CHAR = 279,
-    TK_FLOAT = 280,
-    TK_BOOL = 281,
-    TK_NUM = 282,
-    TK_STRING = 283,
-    TK_FIM = 284,
-    TK_ERROR = 285
+    TK_IF = 259,
+    TK_ELSE = 260,
+    TK_THEN = 261,
+    TK_END_LOOP = 262,
+    TK_WHILE = 263,
+    TK_DO = 264,
+    TK_FOR = 265,
+    TK_BREAK = 266,
+    TK_CONTINUE = 267,
+    TK_ENTRADA = 268,
+    TK_SAIDA = 269,
+    TK_ID = 270,
+    TK_DEC_VAR = 271,
+    TK_GLOBAL = 272,
+    TK_TIPO_INT = 273,
+    TK_TIPO_FLOAT = 274,
+    TK_TIPO_BOOL = 275,
+    TK_TIPO_CHAR = 276,
+    TK_TIPO_STRING = 277,
+    TK_UN_POS = 278,
+    TK_CONV_FLOAT = 279,
+    TK_CONV_INT = 280,
+    TK_LE = 281,
+    TK_HE = 282,
+    TK_EQ = 283,
+    TK_DIFF = 284,
+    TK_CHAR = 285,
+    TK_FLOAT = 286,
+    TK_BOOL = 287,
+    TK_NUM = 288,
+    TK_STRING = 289,
+    TK_FIM = 290,
+    TK_ERROR = 291
   };
 #endif
 /* Tokens.  */
 #define TK_MAIN 258
-#define TK_ID 259
-#define TK_IF 260
-#define TK_ELSE 261
-#define TK_THEN 262
-#define TK_END_LOOP 263
-#define TK_WHILE 264
-#define TK_DO 265
-#define TK_FOR 266
-#define TK_DEC_VAR 267
-#define TK_TIPO_INT 268
-#define TK_TIPO_FLOAT 269
-#define TK_TIPO_BOOL 270
-#define TK_TIPO_CHAR 271
-#define TK_TIPO_STRING 272
-#define TK_CONV_FLOAT 273
-#define TK_CONV_INT 274
-#define TK_LE 275
-#define TK_HE 276
-#define TK_EQ 277
-#define TK_DIFF 278
-#define TK_CHAR 279
-#define TK_FLOAT 280
-#define TK_BOOL 281
-#define TK_NUM 282
-#define TK_STRING 283
-#define TK_FIM 284
-#define TK_ERROR 285
+#define TK_IF 259
+#define TK_ELSE 260
+#define TK_THEN 261
+#define TK_END_LOOP 262
+#define TK_WHILE 263
+#define TK_DO 264
+#define TK_FOR 265
+#define TK_BREAK 266
+#define TK_CONTINUE 267
+#define TK_ENTRADA 268
+#define TK_SAIDA 269
+#define TK_ID 270
+#define TK_DEC_VAR 271
+#define TK_GLOBAL 272
+#define TK_TIPO_INT 273
+#define TK_TIPO_FLOAT 274
+#define TK_TIPO_BOOL 275
+#define TK_TIPO_CHAR 276
+#define TK_TIPO_STRING 277
+#define TK_UN_POS 278
+#define TK_CONV_FLOAT 279
+#define TK_CONV_INT 280
+#define TK_LE 281
+#define TK_HE 282
+#define TK_EQ 283
+#define TK_DIFF 284
+#define TK_CHAR 285
+#define TK_FLOAT 286
+#define TK_BOOL 287
+#define TK_NUM 288
+#define TK_STRING 289
+#define TK_FIM 290
+#define TK_ERROR 291
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

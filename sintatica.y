@@ -41,15 +41,22 @@ int valorVar = 0;
 int valorTemp = 0;
 int valorLoops = 0;
 int mapAtual = 0;
-//unordered_map <string, variable> tabSym;
+unordered_map <string, variable> globalTabSym;
 vector <string> tempVector;
+vector <string> globalTempVector;
 stack <int> stackLoops;
+stack <string> stackCommands;
 vector <unordered_map<string, variable>> contextoVariaveis;
 
 int yylex(void);
 void yyerror(string);
 string genLabel();
 string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar);
+string addVarToGlobalTabSym(string nomeDado, string conteudoVar, string tipoVar);
+void addVarToTempVector(string nomeVar);
+void addVarToGlobalTempVector(string nomeVar);
+void printGlobalVector();
+void printGlobalVariables();
 structAux implicitConversion(string tipo0, string tipo1, string nome0, string nome1);
 string explicitConversion(string tipo0, string tipo1);
 string isBoolean(string tipo0, string tipo1);
@@ -59,12 +66,13 @@ void printVector();
 void addMapToStack();
 variable searchForVariable(string nome);
 void checkForVariable(string nome);
-//string concatenacao();
 %}
 
-%token TK_MAIN TK_ID TK_IF TK_ELSE TK_THEN TK_END_LOOP TK_WHILE TK_DO TK_FOR
-%token TK_DEC_VAR TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_BOOL TK_TIPO_CHAR TK_TIPO_STRING
-%token TK_CONV_FLOAT TK_CONV_INT TK_LE TK_HE TK_EQ TK_DIFF
+%token TK_MAIN
+%token TK_IF TK_ELSE TK_THEN TK_END_LOOP TK_WHILE TK_DO TK_FOR TK_BREAK TK_CONTINUE TK_ENTRADA TK_SAIDA
+%token TK_ID TK_DEC_VAR TK_GLOBAL
+%token TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_BOOL TK_TIPO_CHAR TK_TIPO_STRING
+%token TK_UN_POS TK_CONV_FLOAT TK_CONV_INT TK_LE TK_HE TK_EQ TK_DIFF
 %token TK_CHAR TK_FLOAT TK_BOOL TK_NUM
 %token TK_STRING TK_FIM TK_ERROR
 
@@ -81,11 +89,12 @@ void checkForVariable(string nome);
 
 %%
 
-S 			  : BLOCOCONTEXTO TK_TIPO_INT TK_MAIN '(' ')' BLOCO
+S 		: BLOCOGLOBAL BLOCOCONTEXTO TK_TIPO_INT TK_MAIN '(' ')' BLOCO
 			{
+				printGlobalVariables();
 				cout << "/*Compilador Eva*/\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\n#define TRUE 1\n#define FALSE 0\n\nint main(void)\n{" <<endl;
 				printVector();
-				cout << $6.traducao << "\treturn 0;\n}" << endl;
+				cout << $7.traducao << "\treturn 0;\n}" << endl;
 			}
 			;
 
@@ -95,10 +104,14 @@ BLOCO		  : '{' COMANDOS '}'
 				}
 				;
 
+BLOCOGLOBAL   :
+							{
+								contextoVariaveis.push_back(globalTabSym);
+							}
+
 BLOCOCONTEXTO :
 							{
 								addMapToStack();
-								$$.traducao = "";
 							}
 
 COMANDOS	  : COMANDO COMANDOS
@@ -113,216 +126,500 @@ COMANDOS	  : COMANDO COMANDOS
 					;
 
 COMANDO 	  : E ';'
-			{
-				$$ = $1;
-			}
+						{
+							$$ = $1;
+						}
 
-			| ATRIBUICAO ';'
-			{
-				$$ = $1;
-			}
+						| ATRIBUICAO ';'
+						{
+							$$ = $1;
+						}
 
-			| DECLARACAO ';'
-			{
-				$$ = $1;
-			}
+						| DECLARACAO ';'
+						{
+							$$ = $1;
+						}
 
-			| BLOCOCONTEXTO IF
-			{
-				$$ = $2;
-			}
+						| ENTRADA ';'
+						{
+							$$ = $1;
+						}
 
-			| BLOCOCONTEXTO ELSE
-			{
-				$$ = $2;
-			}
+						| SAIDA ';'
+						{
+							$$ = $1;
+						}
 
-			| BLOCOCONTEXTO WHILE
-			{
-				$$ = $2;
-			}
+						| BLOCOCONTEXTO IF
+						{
+							$$ = $2;
+						}
 
-			| BLOCOCONTEXTO DOWHILE ';'
-			{
-				$$ = $2;
-			}
+						| BLOCOCONTEXTO ELSE
+						{
+							$$ = $2;
+						}
 
-			| BLOCOCONTEXTO FOR 
-			{
-				$$ = $2;
-			}
-			;
+						| BLOCOCONTEXTO WHILE
+						{
+							$$ = $2;
+						}
 
-ATRIBUICAO 	  : TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' E
-			{
-				erroTipo("char", $5.tipo);
-				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "char");
-				$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
-				addVarToTempVector("\tchar " + nomeAuxID + ";\n");
-			}
+						| BLOCOCONTEXTO DOWHILE ';'
+						{
+							$$ = $2;
+						}
 
-			| TK_DEC_VAR TK_ID TK_TIPO_STRING '=' E
-			{
-				erroTipo("string", $5.tipo);
-				string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "string");
-				$$.traducao =  $5.traducao +  "\t" + nomeAuxID + " = " + $5.label + ";\n";
-				addVarToTempVector("\tstring " + nomeAuxID + ";\n");
-			}
+						| BLOCOCONTEXTO FOR
+						{
+							$$ = $2;
+						}
 
-			| TK_DEC_VAR TK_ID TK_TIPO_INT '=' E
-			{
-				$$.tipo = "int";
-				if($$.tipo != $5.tipo){
-					
-					if($5.tipo == "char" || $5.tipo == "string"){
-						yyerror("Declaração de char/string em int não permitido!");
-					}
-					
-					else{
-						string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
-						$$.traducao = $5.traducao + "\t" + nomeAuxID + " = (int) " + $5.label  + ";\n";
-						addVarToTempVector("\tint " + nomeAuxID +  ";\n");
-					}
-				}
-				
-				else{
-					string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
-					$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label  + ";\n";
-					addVarToTempVector("\tint " + nomeAuxID +  ";\n");
-				}
-			}
+						|	BREAK ';'
+						{
+							$$ = $1;
+						}
 
-			| TK_DEC_VAR TK_ID TK_TIPO_FLOAT '=' E
-			{
-				$$.tipo = "float";
-				if($$.tipo != $5.tipo){
-					if($5.tipo == "char" || $5.tipo == "string"){
-						yyerror("Declaração de char/string em float não permitido!");
-					}
-					else{
-						string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "float");
-						$$.traducao = $5.traducao + "\t" + nomeAuxID + " = (float) " + $5.label  + ";\n";
-						addVarToTempVector("\tfloat " + nomeAuxID +  ";\n");
-					}
-				}
-				else{
-					string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "float");
-					$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label  + ";\n";
-					addVarToTempVector("\tint " + nomeAuxID +  ";\n");
-				}
-			}
+						|	CONTINUE ';'
+						{
+							$$ = $1;
+						}
+						;
 
-			| TK_DEC_VAR TK_ID TK_TIPO_BOOL '=' E
+ENTRADA 	: TK_ID '=' TK_ENTRADA
 			{
-				$$.tipo = "bool";
-				if($$.tipo != $5.tipo){
-					yyerror("Tipo booleano somente aceita boleano!");
-				}
-				else{
-					string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
-					$$.traducao = $5.traducao + "\t" + nomeAuxID + $5.label  + ";\n";
-					addVarToTempVector("\tint " + nomeAuxID +  ";\n");
-				}
-			}
-
-			| TK_ID '=' E
-			{
+				$$.label = genLabel();
+				$$.tipo = $1.tipo;
 				variable Var = searchForVariable($1.label);
-				cout << "\n\nNome expressão: " << $3.label << "\nTipo expressão: " << $3.tipo << endl;
-				
-				if(($3.tipo != Var.tipo)){
+				cout << "$3.label = " << $3.label << endl;
+				$$.traducao = "\tstd::cin" + $$.traducao + $1.traducao + ";\n";
+			};
 
-					if(($3.tipo == "char" && Var.tipo != "char") || ($3.tipo == "bool" && Var.tipo != "bool") || ($3.tipo == "string" && Var.tipo != "string")){
-						string msgError = "Atribuição de " + $3.tipo + " em " + Var.tipo  + " é inválida!\n";
-						yyerror(msgError);
-					}
-
-					else{
-
-						$$.tipo = Var.tipo;
-						$$.traducao = $3.traducao + "\t" + Var.nome + " = " + "(" + Var.tipo + ") " + $3.label + ";\n";
-					}
-				}
-
-				else{
-
-					$$.tipo = $3.tipo;
-					$$.traducao = $3.traducao + "\t" + Var.nome + " = " + $3.label + ";\n";
-				}
+SAIDA 		: TK_SAIDA '=' TK_ID
+			{
+				$$.label = genLabel();
+				variable Var = searchForVariable($3.label);
+				$$.traducao = "\tstd::cout " + $3.traducao + ";\n";
 			}
 
-			| TK_ID '=' TK_CONV_FLOAT E
-			{
-				variable Var = searchForVariable($1.label);
-				//unordered_map<string, variable> tabSym = contextoVariaveis.back();
-				if(($4.tipo == "char" && Var.tipo != "char") || ($4.tipo == "bool" && Var.tipo != "bool")){
-					string msgError = "Atribuição de " + $4.tipo + " em " + Var.tipo  + " é inválida!\n";
-					yyerror(msgError);
-				}
+CONDICIONAL : TK_ID '>' E
+						{
+							$$.label = genLabel();
+							$$.tipo = "bool";
+							//cout << "SOU DO TIPO " << $$.tipo << endl;
+							variable Var = searchForVariable($1.label);
+							structAux aux = implicitConversion(Var.tipo, $3.tipo, $1.label, $3.label);
 
-				else{
+							if(aux.varConvertida == $1.label){
 
-					if((Var.tipo == "int") && $4.tipo == "float"){
+								$$.traducao = $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " > " + $3.label + ";\n";
+							}
+							else if(aux.varConvertida == $3.label){
 
-						cout << "Conversão para float em "<< Var.nome << " não suportada! Resultado será armazenado como inteiro!\n" << endl;
-						$$.tipo = "int";
-						$$.traducao = $4.traducao + "\t" + Var.nome + " = " + $4.label + ";\n";
-					}
-					else{
+								$$.traducao = $3.traducao + aux.implicita + "\t" + $$.label + " = " + Var.nome + " > " + aux.nomeVar + ";\n";
+							}
+							else{ //se as duas variáveis são do mesmo tipo
+
+								$$.traducao = $3.traducao + "\t" + $$.label + " = " + Var.nome + " > " + $3.label + ";\n";
+							}
+
+							addVarToTempVector("\tint " + $$.label + ";\n");
+						}
+
+						| TK_ID '<' E
+						{
+							$$.label = genLabel();
+							$$.tipo = "bool";
+							//cout << "SOU DO TIPO " << $$.tipo << endl;
+							variable Var = searchForVariable($1.label);
+							structAux aux = implicitConversion(Var.tipo, $3.tipo, $1.label, $3.label);
+
+							if(aux.varConvertida == $1.label){
+
+								$$.traducao = $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " < " + $3.label + ";\n";
+							}
+							else if(aux.varConvertida == $3.label){
+
+								$$.traducao = $3.traducao + aux.implicita + "\t" + $$.label + " = " + Var.nome + " < " + aux.nomeVar + ";\n";
+							}
+							else{ //se as duas variáveis são do mesmo tipo
+
+								$$.traducao = $3.traducao + "\t" + $$.label + " = " + Var.nome + " < " + $3.label + ";\n";
+							}
+
+							addVarToTempVector("\tint " + $$.label + ";\n");
+						}
+
+						| TK_ID TK_HE E
+						{
+							$$.label = genLabel();
+							$$.tipo = "bool";
+							//cout << "SOU DO TIPO " << $$.tipo << endl;
+							variable Var = searchForVariable($1.label);
+							structAux aux = implicitConversion(Var.tipo, $3.tipo, $1.label, $3.label);
+
+							if(aux.varConvertida == $1.label){
+
+								$$.traducao = $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " >= " + $3.label + ";\n";
+							}
+							else if(aux.varConvertida == $3.label){
+
+								$$.traducao = $3.traducao + aux.implicita + "\t" + $$.label + " = " + Var.nome + " >= " + aux.nomeVar + ";\n";
+							}
+							else{ //se as duas variáveis são do mesmo tipo
+
+								$$.traducao = $3.traducao + "\t" + $$.label + " = " + Var.nome + " >= " + $3.label + ";\n";
+							}
+
+							addVarToTempVector("\tint " + $$.label + ";\n");
+						}
+
+						| TK_ID TK_LE E
+						{
+							$$.label = genLabel();
+							$$.tipo = "bool";
+							//cout << "SOU DO TIPO " << $$.tipo << endl;
+							variable Var = searchForVariable($1.label);
+							structAux aux = implicitConversion(Var.tipo, $3.tipo, $1.label, $3.label);
+
+							if(aux.varConvertida == $1.label){
+
+								$$.traducao = $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " <= " + $3.label + ";\n";
+							}
+							else if(aux.varConvertida == $3.label){
+
+								$$.traducao = $3.traducao + aux.implicita + "\t" + $$.label + " = " + Var.nome + " <= " + aux.nomeVar + ";\n";
+							}
+							else{ //se as duas variáveis são do mesmo tipo
+
+								$$.traducao = $3.traducao + "\t" + $$.label + " = " + Var.nome + " <= " + $3.label + ";\n";
+							}
+						}
+
+						| TK_ID TK_EQ E
+						{
+							$$.label = genLabel();
+							$$.tipo = "bool";
+							//cout << "SOU DO TIPO " << $$.tipo << endl;
+							variable Var = searchForVariable($1.label);
+							structAux aux = implicitConversion(Var.tipo, $3.tipo, $1.label, $3.label);
+
+							if(aux.varConvertida == $1.label){
+
+								$$.traducao = $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " == " + $3.label + ";\n";
+							}
+							else if(aux.varConvertida == $3.label){
+
+								$$.traducao = $3.traducao + aux.implicita + "\t" + $$.label + " = " + Var.nome + " == " + aux.nomeVar + ";\n";
+							}
+							else{ //se as duas variáveis são do mesmo tipo
+
+								$$.traducao = $3.traducao + "\t" + $$.label + " = " + Var.nome + " == " + $3.label + ";\n";
+							}
+						}
+
+						| TK_ID TK_DIFF E
+						{
+							$$.label = genLabel();
+							$$.tipo = "bool";
+							//cout << "SOU DO TIPO " << $$.tipo << endl;
+							variable Var = searchForVariable($1.label);
+							structAux aux = implicitConversion(Var.tipo, $3.tipo, $1.label, $3.label);
+
+							if(aux.varConvertida == $1.label){
+
+								$$.traducao = $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " != " + $3.label + ";\n";
+							}
+							else if(aux.varConvertida == $3.label){
+
+								$$.traducao = $3.traducao + aux.implicita + "\t" + $$.label + " = " + Var.nome + " != " + aux.nomeVar + ";\n";
+							}
+							else{ //se as duas variáveis são do mesmo tipo
+
+								$$.traducao = $3.traducao + "\t" + $$.label + " = " + Var.nome + " != " + $3.label + ";\n";
+							}
+						}
+						;
+
+ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' E
+						{
+							erroTipo("char", $5.tipo);
+							string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "char");
+							$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label + ";\n";
+							addVarToTempVector("\tchar " + nomeAuxID + ";\n");
+						}
+
+						/*| TK_DEC_VAR TK_ID TK_TIPO_STRING '=' E
+						{
+							erroTipo("string", $5.tipo);
+							string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "string");
+							$$.traducao =  $5.traducao +  "\t" + nomeAuxID + " = " + $5.label + ";\n";
+							addVarToTempVector("\tstring " + nomeAuxID + ";\n");
+						}
+						*/
+						| TK_DEC_VAR TK_ID TK_TIPO_INT '=' E
+						{
+							$$.tipo = "int";
+							if($$.tipo != $5.tipo){
+
+								if($5.tipo == "char" || $5.tipo == "string"){
+									yyerror("Declaração de char/string em int não permitido!");
+								}
+
+								else{
+
+									string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
+									$$.traducao = $5.traducao + "\t" + nomeAuxID + " = (int) " + $5.label  + ";\n";
+									addVarToTempVector("\tint " + nomeAuxID +  ";\n");
+								}
+							}
+
+							else{
+
+								string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
+								$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label  + ";\n";
+								addVarToTempVector("\tint " + nomeAuxID +  ";\n");
+							}
+						}
+
+						| TK_DEC_VAR TK_ID TK_TIPO_FLOAT '=' E
+						{
 							$$.tipo = "float";
-							$$.traducao = $4.traducao + "\t" + Var.nome + " = (float) " + $4.label + ";\n";
-					}
-				}
-			}
+							if($$.tipo != $5.tipo){
+								if($5.tipo == "char" || $5.tipo == "string"){
+									yyerror("Declaração de char/string em float não permitido!");
+								}
+								else{
+									string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "float");
+									$$.traducao = $5.traducao + "\t" + nomeAuxID + " = (float) " + $5.label  + ";\n";
+									addVarToTempVector("\tfloat " + nomeAuxID +  ";\n");
+								}
+							}
+							else{
+								string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "float");
+								$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label  + ";\n";
+								addVarToTempVector("\tint " + nomeAuxID +  ";\n");
+							}
+						}
 
-			| TK_ID '=' TK_CONV_INT E
-			{
-				variable Var = searchForVariable($1.label);
-				//unordered_map<string, variable> tabSym = contextoVariaveis.back();
-				if(($4.tipo == "char" && Var.tipo != "char") || ($4.tipo == "bool" && Var.tipo != "bool")){
-					string msgError = "Atribuição de " + $4.tipo + " em " + Var.tipo  + " é inválida!\n";
-					yyerror(msgError);
-				}
+						| TK_DEC_VAR TK_ID TK_TIPO_BOOL '=' E
+						{
+							$$.tipo = "bool";
+							if($$.tipo != $5.tipo){
+								yyerror("Tipo booleano somente aceita boleano!");
+							}
+							else{
+								string nomeAuxID = addVarToTabSym($2.label, $5.traducao, "int");
+								$$.traducao = $5.traducao + "\t" + nomeAuxID + " = " + $5.label  + ";\n";
+								addVarToTempVector("\tint " + nomeAuxID +  ";\n");
+							}
+						}
 
-				else{
+						//globais
 
-					$$.traducao = $4.traducao + "\t" + Var.nome + " = (int) " + $4.label + ";\n";
-				}
-			}
-			;
+						| TK_DEC_VAR TK_GLOBAL TK_ID TK_TIPO_CHAR '=' E
+						{
+							erroTipo("char", $6.tipo);
+							string nomeAuxID = addVarToGlobalTabSym($2.label, $6.traducao, "char");
+							$$.traducao = $6.traducao + "\t" + nomeAuxID + " = " + $6.label + ";\n";
+						}
 
-DECLARACAO	  : TK_DEC_VAR TK_ID TK_TIPO_CHAR
-			{
-				string nomeAuxID = addVarToTabSym($2.label, "none", "char");
-				addVarToTempVector("\tchar " + nomeAuxID +  ";\n");
-			}
+						/*| TK_DEC_VAR TK_GLOBAL TK_ID TK_TIPO_STRING '=' E
+						{
+							erroTipo("string", $6.tipo);
+							string nomeAuxID = addVarToGlobalTabSym($2.label, $6.traducao, "string");
+							$$.traducao =  $6.traducao +  "\t" + nomeAuxID + " = " + $6.label + ";\n";
+						}
+						*/
 
-			| TK_DEC_VAR TK_ID TK_TIPO_STRING
-			{
-				string nomeAuxID = addVarToTabSym($2.label, "none", "string");
-				addVarToTempVector("\tstring " + nomeAuxID +  ";\n");
-			}
+						| TK_DEC_VAR TK_GLOBAL TK_ID TK_TIPO_INT '=' E
+						{
+							$$.tipo = "int";
+							if($$.tipo != $6.tipo){
 
-			| TK_DEC_VAR TK_ID TK_TIPO_INT
-			{
-				string nomeAuxID = addVarToTabSym($2.label, "0", "int");
-				addVarToTempVector("\tint " + nomeAuxID + ";\n");
-			}
+								if($6.tipo == "char" || $6.tipo == "string"){
+									yyerror("Declaração de char/string em int não permitido!");
+								}
 
-			| TK_DEC_VAR TK_ID TK_TIPO_FLOAT
-			{
-				string nomeAuxID = addVarToTabSym($2.label, "0.0", "float");
-				addVarToTempVector("\tfloat " + nomeAuxID + ";\n");
-			}
+								else{
+									string nomeAuxID = addVarToGlobalTabSym($2.label, $6.traducao, "int");
+									$$.traducao = $6.traducao + "\t" + nomeAuxID + " = (int) " + $6.label  + ";\n";
+								}
+							}
 
-			| TK_DEC_VAR TK_ID TK_TIPO_BOOL
-			{
-				string nomeAuxID = addVarToTabSym($2.label, "TRUE", "bool");
-				addVarToTempVector("\tint " + nomeAuxID + ";\n");
-			}
-			;
+							else{
+								string nomeAuxID = addVarToGlobalTabSym($2.label, $6.traducao, "int");
+								$$.traducao = $6.traducao + "\t" + nomeAuxID + " = " + $6.label  + ";\n";
+							}
+						}
 
-IF			  : TK_IF {valorLoops++; stackLoops.push(valorLoops);} E TK_THEN COMANDOS TK_END_LOOP ';'
+						| TK_DEC_VAR TK_GLOBAL TK_ID TK_TIPO_FLOAT '=' E
+						{
+							$$.tipo = "float";
+							if($$.tipo != $6.tipo){
+								if($6.tipo == "char" || $6.tipo == "string"){
+									yyerror("Declaração de char/string em float não permitido!");
+								}
+								else{
+									string nomeAuxID = addVarToGlobalTabSym($2.label, $6.traducao, "float");
+									$$.traducao = $6.traducao + "\t" + nomeAuxID + " = (float) " + $6.label  + ";\n";
+								}
+							}
+							else{
+								string nomeAuxID = addVarToGlobalTabSym($2.label, $6.traducao, "float");
+								$$.traducao = $6.traducao + "\t" + nomeAuxID + " = " + $6.label  + ";\n";
+							}
+						}
+
+						| TK_DEC_VAR TK_GLOBAL TK_ID TK_TIPO_BOOL '=' E
+						{
+							$$.tipo = "bool";
+							if($$.tipo != $6.tipo){
+								yyerror("Tipo booleano somente aceita boleano!");
+							}
+							else{
+								string nomeAuxID = addVarToGlobalTabSym($2.label, $6.traducao, "int");
+								$$.traducao = $6.traducao + "\t" + nomeAuxID + " = " + $6.label  + ";\n";
+							}
+						}
+
+						//atribuicao sem declaracao
+
+						| TK_ID '=' E
+						{
+							variable Var = searchForVariable($1.label);
+							cout << "\n\nNome expressão: " << $3.label << "\nTipo expressão: " << $3.tipo << endl;
+
+							if(($3.tipo != Var.tipo)){
+
+								if(($3.tipo == "char" && Var.tipo != "char") || ($3.tipo == "bool" && Var.tipo != "bool") || ($3.tipo == "string" && Var.tipo != "string")){
+									string msgError = "Atribuição de " + $3.tipo + " em " + Var.tipo  + " é inválida!\n";
+									yyerror(msgError);
+								}
+
+								else{
+
+									$$.tipo = Var.tipo;
+									$$.traducao = $3.traducao + "\t" + Var.nome + " = " + "(" + Var.tipo + ") " + $3.label + ";\n";
+								}
+							}
+
+							else{
+
+								$$.tipo = $3.tipo;
+								$$.traducao = $3.traducao + "\t" + Var.nome + " = " + $3.label + ";\n";
+							}
+						}
+
+						| TK_ID '=' TK_CONV_FLOAT E
+						{
+							variable Var = searchForVariable($1.label);
+							//unordered_map<string, variable> tabSym = contextoVariaveis.back();
+							if(($4.tipo == "char" && Var.tipo != "char") || ($4.tipo == "bool" && Var.tipo != "bool")){
+								string msgError = "Atribuição de " + $4.tipo + " em " + Var.tipo  + " é inválida!\n";
+								yyerror(msgError);
+							}
+
+							else{
+
+								if((Var.tipo == "int") && $4.tipo == "float"){
+
+									cout << "Conversão para float em "<< Var.nome << " não suportada! Resultado será armazenado como inteiro!\n" << endl;
+									$$.tipo = "int";
+									$$.traducao = $4.traducao + "\t" + Var.nome + " = " + $4.label + ";\n";
+								}
+								else{
+										$$.tipo = "float";
+										$$.traducao = $4.traducao + "\t" + Var.nome + " = (float) " + $4.label + ";\n";
+								}
+							}
+						}
+
+						| TK_ID '=' TK_CONV_INT E
+						{
+							variable Var = searchForVariable($1.label);
+							//unordered_map<string, variable> tabSym = contextoVariaveis.back();
+							if(($4.tipo == "char" && Var.tipo != "char") || ($4.tipo == "bool" && Var.tipo != "bool")){
+								string msgError = "Atribuição de " + $4.tipo + " em " + Var.tipo  + " é inválida!\n";
+								yyerror(msgError);
+							}
+
+							else{
+
+								$$.traducao = $4.traducao + "\t" + Var.nome + " = (int) " + $4.label + ";\n";
+							}
+						}
+						;
+
+DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
+						{
+							string nomeAuxID = addVarToTabSym($2.label, "none", "char");
+							$$.traducao = "\t";
+							addVarToTempVector("\tchar " + nomeAuxID +  ";\n");
+						}
+
+						/*| TK_DEC_VAR TK_ID TK_TIPO_STRING
+						{
+							string nomeAuxID = addVarToTabSym($2.label, "none", "string");
+							$$.traducao = "\t";
+							addVarToTempVector("\tstring " + nomeAuxID +  ";\n");
+						}*/
+
+						| TK_DEC_VAR TK_ID TK_TIPO_INT
+						{
+							string nomeAuxID = addVarToTabSym($2.label, "0", "int");
+							$$.traducao = "\t";
+							addVarToTempVector("\tint " + nomeAuxID + ";\n");
+						}
+
+						| TK_DEC_VAR TK_ID TK_TIPO_FLOAT
+						{
+							string nomeAuxID = addVarToTabSym($2.label, "0.0", "float");
+							$$.traducao = "\t";
+							addVarToTempVector("\tfloat " + nomeAuxID + ";\n");
+						}
+
+						| TK_DEC_VAR TK_ID TK_TIPO_BOOL
+						{
+							string nomeAuxID = addVarToTabSym($2.label, "TRUE", "bool");
+							$$.traducao = "\t";
+							addVarToTempVector("\tint " + nomeAuxID + ";\n");
+						}
+
+						//globais
+
+						| TK_DEC_VAR TK_GLOBAL TK_ID TK_TIPO_CHAR
+						{
+							string nomeAuxID = addVarToGlobalTabSym($2.label, "none", "char");
+							$$.traducao = "\t";
+						}
+
+						/*| TK_DEC_VAR TK_GLOBAL TK_ID TK_TIPO_STRING
+						{
+							string nomeAuxID = addVarToGlobalTabSym($2.label, "none", "string");
+							$$.traducao = "\t";
+						}*/
+
+						| TK_DEC_VAR TK_GLOBAL TK_ID TK_TIPO_INT
+						{
+							string nomeAuxID = addVarToGlobalTabSym($2.label, "0", "int");
+							$$.traducao = "\t";
+						}
+
+						| TK_DEC_VAR TK_GLOBAL TK_ID TK_TIPO_FLOAT
+						{
+							string nomeAuxID = addVarToGlobalTabSym($2.label, "0.0", "float");
+							$$.traducao = "\t";
+						}
+
+						| TK_DEC_VAR TK_GLOBAL TK_ID TK_TIPO_BOOL
+						{
+							string nomeAuxID = addVarToGlobalTabSym($2.label, "TRUE", "bool");
+							$$.traducao = "\t";
+						}
+						;
+
+IF			  : TK_IF {valorLoops++; stackLoops.push(valorLoops);} CONDICIONAL TK_THEN COMANDOS TK_END_LOOP ';'
 					{
 						if($3.tipo != "bool"){
 							yyerror("Condicional sem declaração do tipo booleano!\n");
@@ -332,7 +629,26 @@ IF			  : TK_IF {valorLoops++; stackLoops.push(valorLoops);} E TK_THEN COMANDOS T
 							string auxVar = "temp" + to_string(valorVar++);
 							addVarToTempVector("\tint " + auxVar + ";\n");
 							string auxVar2 = "!" + $3.label;
-							$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $3.traducao + "\n\t" + auxVar + " = " +
+							$$.traducao = "\n//if\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $3.traducao + "\n\t" + auxVar + " = " +
+							auxVar2 + ";\n\tif(" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n" + $5.traducao + "\tfinal" +
+							to_string(stackLoops.top()) + ":\n";
+							stackLoops.pop();
+							contextoVariaveis.pop_back();
+							mapAtual--;
+						}
+					}
+
+					| TK_IF {valorLoops++; stackLoops.push(valorLoops);} E TK_THEN COMANDOS TK_END_LOOP ';'
+					{
+						if($3.tipo != "bool"){
+							yyerror("Condicional sem declaração do tipo booleano!\n");
+						}
+
+						else{
+							string auxVar = "temp" + to_string(valorVar++);
+							addVarToTempVector("\tint " + auxVar + ";\n");
+							string auxVar2 = "!" + $3.label;
+							$$.traducao = "\n//if\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $3.traducao + "\n\t" + auxVar + " = " +
 							auxVar2 + ";\n\tif(" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n" + $5.traducao + "\tfinal" +
 							to_string(stackLoops.top()) + ":\n";
 							stackLoops.pop();
@@ -354,7 +670,26 @@ ELSE		  : IF {valorLoops++; stackLoops.push(valorLoops);} TK_ELSE TK_THEN COMAND
 				}
 				;
 
-WHILE 		  : TK_WHILE {valorLoops++; stackLoops.push(valorLoops);} '(' E ')' BLOCO
+WHILE 		: TK_WHILE {valorLoops++; stackLoops.push(valorLoops); stackCommands.push("while");} '(' CONDICIONAL ')' BLOCO
+					{
+						if($4.tipo != "bool"){
+							yyerror("Condicional sem declaração do tipo booleano!\n");
+						}
+
+						else{
+							string auxVar = "temp" + to_string(valorVar++);
+							addVarToTempVector("\tint " + auxVar + ";\n");
+							string auxVar2 = "!" + $4.label;
+							$$.traducao = "\n//while:\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $4.traducao + "\n\tloop" + to_string(stackLoops.top()) + ": " + auxVar + " = " +
+							auxVar2 + ";\n\tif(" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n" + $6.traducao + "\tgoto loop" + to_string(stackLoops.top()) +
+							";\n\tfinal" + to_string(stackLoops.top()) + ":\n";
+							stackLoops.pop();
+							contextoVariaveis.pop_back();
+							mapAtual--;
+						}
+					}
+					/*
+					| TK_WHILE {valorLoops++; stackLoops.push(valorLoops); stackCommands.push("while");} '(' E ')' BLOCO
 					{
 						if($4.tipo != "bool"){
 							yyerror("Condicional sem declaração do tipo booleano!\n");
@@ -371,51 +706,132 @@ WHILE 		  : TK_WHILE {valorLoops++; stackLoops.push(valorLoops);} '(' E ')' BLOC
 							contextoVariaveis.pop_back();
 							mapAtual--;
 						}
-					}
+					}*/
 					;
 
-DOWHILE		  : TK_DO {valorLoops++; stackLoops.push(valorLoops);} BLOCO TK_WHILE '(' E ')'
-			{
-				if($6.tipo != "bool"){
-					yyerror("Condicional sem declaração do tipo booleano!\n");
-				}
+DOWHILE		: TK_DO {valorLoops++; stackLoops.push(valorLoops); stackCommands.push("while");} BLOCO TK_WHILE '(' CONDICIONAL ')'
+					{
+						if($6.tipo != "bool"){
+							yyerror("Condicional sem declaração do tipo booleano!\n");
+						}
 
-				else{
-					string auxVar = "temp" + to_string(valorVar++);
-					addVarToTempVector("\tint " + auxVar + ";\n");
-					string auxVar2 = "!" + $6.label;
-					$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $3.traducao + "\n\tloop" + to_string(stackLoops.top()) + ":\n" + $6.traducao +
-					"\t" + auxVar + " = " + auxVar2 + ";\n\tif (" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n\tgoto comeco" + to_string(stackLoops.top()) +
-					";\n\tfinal" + to_string(stackLoops.top()) + ":\n";
-					stackLoops.pop();
-					contextoVariaveis.pop_back();
-					mapAtual--;
-				}
-			}
+						else{
+							string auxVar = "temp" + to_string(valorVar++);
+							addVarToTempVector("\tint " + auxVar + ";\n");
+							string auxVar2 = "!" + $6.label;
+							$$.traducao = "\n//do while:\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $3.traducao + "\n\tloop" + to_string(stackLoops.top()) + ":\n" + $6.traducao +
+							"\t" + auxVar + " = " + auxVar2 + ";\n\tif (" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n\tgoto comeco" + to_string(stackLoops.top()) +
+							";\n\tfinal" + to_string(stackLoops.top()) + ":\n";
+							stackLoops.pop();
+							contextoVariaveis.pop_back();
+							mapAtual--;
+						}
+					}
+					/*
+					| TK_DO {valorLoops++; stackLoops.push(valorLoops); stackCommands.push("while");} BLOCO TK_WHILE '(' E ')'
+					{
+						if($6.tipo != "bool"){
+							yyerror("Condicional sem declaração do tipo booleano!\n");
+						}
 
-FOR 		  :	TK_FOR {valorLoops++; stackLoops.push(valorLoops);} TK_DEC_VAR TK_ID TK_TIPO_INT '=' E ';' E ';' E ';' '{' COMANDOS '}' 
-			  {
-			  	
-			  	if($9.tipo != "bool"){
-			  		string msgError = "For somente itera sobre booleano! Tentativa de iterar sobre " + $9.tipo + " inválida!\n";
-			  		yyerror(msgError);
-			  	}
+						else{
+							string auxVar = "temp" + to_string(valorVar++);
+							addVarToTempVector("\tint " + auxVar + ";\n");
+							string auxVar2 = "!" + $6.label;
+							$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $3.traducao + "\n\tloop" + to_string(stackLoops.top()) + ":\n" + $6.traducao +
+							"\t" + auxVar + " = " + auxVar2 + ";\n\tif (" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n\tgoto comeco" + to_string(stackLoops.top()) +
+							";\n\tfinal" + to_string(stackLoops.top()) + ":\n";
+							stackLoops.pop();
+							contextoVariaveis.pop_back();
+							mapAtual--;
+						}
+					}*/
+					;
 
-			  	string nomeVar = addVarToTabSym($4.label, $7.traducao, "int");
+FOR 		  :	TK_FOR {valorLoops++; stackLoops.push(valorLoops); stackCommands.push("for");} TK_ID ';' CONDICIONAL ';' E ';' BLOCO
+				  {
 
-			  	string auxVar = "temp" + to_string(valorVar++);
-				addVarToTempVector("\tint " + auxVar + ";\n");
-				
-				string auxVar2 = genLabel();
-				string auxVar3 = "!" + auxVar2;
+						variable Var = searchForVariable($3.label);
 
-				$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $7.traducao + "\n\tloop" + to_string(stackLoops.top()) + ": " + auxVar + " = " +
-				auxVar3 + ";\n\tif(" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n" + $14.label + "\t" + nomeVar + " = " + nomeVar + " + 1;\n" + 
-				"\tgoto loop" + to_string(stackLoops.top()) + ";\n\tfinal" + to_string(stackLoops.top()) + ":\n"; 
-				stackLoops.pop();
-				contextoVariaveis.pop_back();
-				mapAtual--;
-			  }
+				  	if($5.tipo != "bool"){
+				  		string msgError = "For somente itera sobre booleano! Tentativa de iterar sobre " + $5.tipo + " inválida!\n";
+				  		yyerror(msgError);
+				  	}
+
+				  	string nomeVar = genLabel();
+						addVarToTempVector("\tint " + nomeVar + ";\n");
+
+				  	string auxVar = "temp" + to_string(valorVar++);
+						addVarToTempVector("\tint " + auxVar + ";\n");
+
+						string auxVar2 = genLabel();
+						string auxVar3 = "!" + $5.label;
+
+						$$.traducao = "\n//for:\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $5.traducao + "\n\tloop" + to_string(stackLoops.top()) + ": " + auxVar + " = " +
+						auxVar3 + ";\n\tif(" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n" + $9.traducao +"\t"+ nomeVar + " = " + Var.nome + " + 1;\n" +
+						"\tgoto loop" + to_string(stackLoops.top()) + ";\n\tfinal" + to_string(stackLoops.top()) + ":\n";
+						stackLoops.pop();
+						contextoVariaveis.pop_back();
+						mapAtual--;
+					}
+					/*
+					| TK_FOR {valorLoops++; stackLoops.push(valorLoops); stackCommands.push("for");} TK_ID ';' E ';' E ';' BLOCO
+				  {
+
+						variable Var = searchForVariable($3.label);
+
+				  	if($5.tipo != "bool"){
+				  		string msgError = "For somente itera sobre booleano! Tentativa de iterar sobre " + $5.tipo + " inválida!\n";
+				  		yyerror(msgError);
+				  	}
+
+				  	string nomeVar = genLabel();
+						addVarToTempVector("\tint " + nomeVar + ";\n");
+
+				  	string auxVar = "temp" + to_string(valorVar++);
+						addVarToTempVector("\tint " + auxVar + ";\n");
+
+						string auxVar2 = genLabel();
+						string auxVar3 = "!" + $5.label;
+
+						$$.traducao = "\n\tcomeco" + to_string(stackLoops.top()) + ":\n" + $5.traducao + "\n\tloop" + to_string(stackLoops.top()) + ": " + auxVar + " = " +
+						auxVar3 + ";\n\tif(" + auxVar + ") goto final" + to_string(stackLoops.top()) + ";\n" + $9.traducao +"\t"+ nomeVar + " = " + Var.nome + " + 1;\n" +
+						"\tgoto loop" + to_string(stackLoops.top()) + ";\n\tfinal" + to_string(stackLoops.top()) + ":\n";
+						stackLoops.pop();
+						contextoVariaveis.pop_back();
+						mapAtual--;
+					}*/
+					;
+
+BREAK			: TK_BREAK
+					{
+						if(stackLoops.empty()){
+							$$.traducao = "";
+						}
+
+						else if(stackCommands.empty()){
+							yyerror("Break fora de um laço. Erro!");
+						}
+
+						else{
+							$$.traducao = "\tgoto final" + to_string(stackLoops.top()) + ";// isso é um break\n";
+						}
+					}
+
+CONTINUE 	:	TK_CONTINUE
+					{
+						if(stackLoops.empty()){
+							$$.traducao = "";
+						}
+
+						else if(stackCommands.empty()){
+							yyerror("Continue fora de um laço. Erro!");
+						}
+
+						else{
+							$$.traducao = "\tgoto inicio" + to_string(stackLoops.top()) + ";// isso é um continue\n";
+						}
+					}
 
 E 			  : E '+' E
 			{
@@ -491,12 +907,23 @@ E 			  : E '+' E
 				addVarToTempVector("\t" + $$.tipo + " " + $$.label + ";\n");
 			}
 
+			| TK_ID TK_UN_POS
+			{
+
+				variable Var = searchForVariable($1.label);
+				$$.tipo = Var.tipo;
+
+				$$.traducao = "\t" + $1.label + " = " + $1.label + " + 1;\n";
+
+			}
+
 			| E '<' E
 			{
 				$$.label = genLabel();
 				$$.tipo = "bool";
 				//cout << "SOU DO TIPO " << $$.tipo << endl;
 				structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
+
 				if(aux.varConvertida == $1.label){
 					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " < " + $3.label + ";\n";
 				}
@@ -597,26 +1024,19 @@ E 			  : E '+' E
 			{
 				$$.label = genLabel();
 				$$.tipo = "bool";
-
-				if(($1.tipo == "bool" && $3.tipo == "bool") || ($1.tipo == "char" && $3.tipo == "char")){
-
+				//cout << "SOU DO TIPO " << $$.tipo << endl;
+				structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
+				if(aux.varConvertida == $1.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " == " + $3.label + ";\n";
+				}
+				else if(aux.varConvertida == $3.label){
+					$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " == " + aux.nomeVar + ";\n";
+				}
+				else{ //se as duas variáveis são do mesmo tipo
 					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " == " + $3.label + ";\n";
 				}
 
-				else{
-					structAux aux = implicitConversion($1.tipo, $3.tipo, $1.label, $3.label);
-					if(aux.varConvertida == $1.label){
-						$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + aux.nomeVar + " == " + $3.label + ";\n";
-					}
-					else if(aux.varConvertida == $3.label){
-						$$.traducao = $1.traducao + $3.traducao + aux.implicita + "\t" + $$.label + " = " + $1.label + " == " + aux.nomeVar + ";\n";
-					}
-					else{ //se as duas variáveis são do mesmo tipo
-						$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " == " + $3.label + ";\n";
-					}
-					addVarToTempVector("\tint " + $$.label + ";\n");
-
-				}
+				addVarToTempVector("\tint " + $$.label + ";\n");
 			}
 
 			| E TK_DIFF E
@@ -649,12 +1069,6 @@ E 			  : E '+' E
 			{
 				$$ = $2;
 			}
-
-			/*| E '+' '+'
-			{
-
-				$$.traducao = $1.traducao + ""
-			}*/
 
 			| TK_NUM
 			{
@@ -698,10 +1112,10 @@ E 			  : E '+' E
 
 			| TK_ID
 			{
-				unordered_map<string, variable> tabSym = contextoVariaveis.back();
-				$$.label = tabSym[$1.label].nome;
-				$$.tipo = tabSym[$1.label].tipo;
-				$$.traducao = tabSym[$1.label].valor;
+				variable auxVar = searchForVariable($1.label);
+				$$.label = auxVar.nome;
+				$$.tipo = auxVar.tipo;
+				$$.traducao;
 			}
 			;
 %%
@@ -732,7 +1146,7 @@ string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar){
 
 	checkForVariable(nomeDado);
 	unordered_map<string, variable> tabSym = contextoVariaveis.back();
-	cout << "\ntabSym 1 " << (tabSym.empty() ? "is empty" : "is not empty" ) << endl;
+	cout << "\ntabSym antes " << (tabSym.empty() ? "is empty" : "is not empty" ) << endl;
 	unordered_map<string, variable>::const_iterator got = tabSym.find(nomeDado);
 	string nomeGerado;
 
@@ -742,15 +1156,15 @@ string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar){
 		nomeGerado = genLabel();
 
 		Var2 =	{
-					.tipo = tipoVar,
-				   	.nome = nomeGerado,
-					.valor = conteudoVar
-		  		};
+							.tipo = tipoVar,
+						  .nome = nomeGerado,
+							.valor = conteudoVar
+		  			};
 
 		tabSym[nomeDado] = Var2;
 		contextoVariaveis.pop_back();
 		contextoVariaveis.push_back(tabSym);
-		cout << "tabSym 2 " << (contextoVariaveis.empty() ? "is empty" : "is not empty" ) << endl;
+		cout << "tabSym depois " << (contextoVariaveis.empty() ? "is empty" : "is not empty" ) << endl;
 		cout << "\nAdicionado " << tabSym[nomeDado].nome << " de tipo "<< tabSym[nomeDado].tipo <<" na tabela de simbolos " << mapAtual << "!\n" << endl;
 		return tabSym[nomeDado].nome;
 	}
@@ -761,6 +1175,53 @@ string addVarToTabSym(string nomeDado, string conteudoVar, string tipoVar){
 	}*/
 
 	return "";
+}
+
+string addVarToGlobalTabSym(string nomeDado, string conteudoVar, string tipoVar){
+
+	checkForVariable(nomeDado);
+	//unordered_map<string, variable> tabSym = contextoVariaveis.back();
+	cout << "\nglobalTabSym antes " << (globalTabSym.empty() ? "is empty" : "is not empty" ) << endl;
+	unordered_map<string, variable>::const_iterator got = globalTabSym.find(nomeDado);
+	string nomeGerado;
+
+	if(got == globalTabSym.end()){
+
+		variable Var;
+		nomeGerado = genLabel();
+
+		Var =	{
+					.tipo = tipoVar,
+				   	.nome = nomeGerado,
+					.valor = conteudoVar
+		  		};
+
+		globalTabSym[nomeDado] = Var;
+		//contextoVariaveis.pop_back();
+		//ScontextoVariaveis.push_back(abSym);
+		cout << "globalTabSym depois " << (globalTabSym.empty() ? "is empty" : "is not empty" ) << endl;
+		cout << "\nAdicionado " << globalTabSym[nomeDado].nome << " de tipo "<< globalTabSym[nomeDado].tipo <<" na tabela global de simbolos!\n" << endl;
+		return globalTabSym[nomeDado].nome;
+	}
+
+	/*else {
+
+		return tabSym[nomeDado].nome;
+	}*/
+
+	return "";
+}
+
+void printGlobalVariables(){
+
+	unordered_map<string, variable> auxMap = globalTabSym;
+
+	for (auto& it: globalTabSym){
+
+		addVarToGlobalTempVector("\t" + it.second.tipo + " " + it.second.nome + ";\n");
+	}
+
+	printGlobalVector();
 }
 
 structAux implicitConversion(string tipo0, string tipo1, string nome0, string nome1){
@@ -843,13 +1304,27 @@ void addVarToTempVector(string nomeVar)
 	tempVector.push_back(nomeVar);
 }
 
+void addVarToGlobalTempVector(string nomeVar)
+{
+	globalTempVector.push_back(nomeVar);
+}
+
 void printVector()
 {
 	for(auto i: tempVector)
 	{
 		cout << i;
 	}
+	cout << "\n\n" << endl;
+}
 
+void printGlobalVector()
+{
+	cout << "\n" << endl;
+	for(auto i: globalTempVector)
+	{
+		cout << i;
+	}
 	cout << "\n\n" << endl;
 }
 
@@ -903,7 +1378,7 @@ variable searchForVariable(string nome){
 		auxMap = auxVector.back();
 		auxVector.pop_back();
 
-		cout << "auxMap " << (auxMap.empty() ? "is empty" : "is not empty" ) << endl;
+		cout << "auxMap search iteração " << i << " " << (auxMap.empty() ? "is empty" : "is not empty" ) << endl;
 
 		unordered_map<string, variable>::const_iterator got = auxMap.find(nome); //procuro a variável pelo nome no map mais interno
 
@@ -914,12 +1389,21 @@ variable searchForVariable(string nome){
 			return auxVar; //se for, retorno essa variável
 		}
 	}
+	cout << "checando a tabela global de simbolos... " << endl;
+	cout << "variavel buscando: " << nome << endl;
+	cout << "globalTabSym " << (globalTabSym.empty() ? "is empty" : "is not empty" ) << endl;
+
+	unordered_map<string, variable>::const_iterator got2 = globalTabSym.find(nome);
+	if(got2 != globalTabSym.end()){
+		string errorMessage = "\n\nEncontrada variável!\nNome: " + nome + "\nTipo: " + auxMap[nome].tipo + "no escopo global!\n";
+		yyerror(errorMessage);
+	}
 	//se não encontrei, a variável não existe e está tentando ser acessada. Erro!
 	yyerror("Variável não declarada tentando ser usada!\n");
 }
 
 void checkForVariable(string nome){
-	
+
 	int i = mapAtual; //inteiro para percorrer o vetor de mapas
 	vector<unordered_map<string, variable>> auxVector; //vetor auxiliar para percorrer
 	auxVector = contextoVariaveis; //atribuo o vetor de contexto global para o vetor auxiliar
@@ -935,7 +1419,7 @@ void checkForVariable(string nome){
 		auxMap = auxVector.back();
 		auxVector.pop_back();
 
-		cout << "auxMap " << (auxMap.empty() ? "is empty" : "is not empty" ) << endl;
+		cout << "auxMap check iteração " << i << " " << (auxMap.empty() ? "is empty" : "is not empty" ) << endl;
 
 		unordered_map<string, variable>::const_iterator got = auxMap.find(nome); //procuro a variável pelo nome no map mais interno
 
@@ -944,6 +1428,20 @@ void checkForVariable(string nome){
 			string errorMessage = "\n\nEncontrada variável!\nNome: " + nome + "\nTipo: " + auxMap[nome].tipo + "\n";
 			yyerror(errorMessage);
 		}
+	}
+
+	cout << "\nchecando a tabela global de simbolos... " << endl;
+	cout << "variavel buscando: " << nome << endl;
+	cout << "globalTabSym " << (globalTabSym.empty() ? "is empty" : "is not empty" ) << endl;
+	cout << "auxVector " << (auxVector.empty() ? "is empty" : "is not empty" ) << endl;
+
+	unordered_map<string, variable>::const_iterator got2 = globalTabSym.find(nome);
+
+	if(got2 == globalTabSym.end()){
+		cout << "variável " << nome << " não existe no escopo global!\n" << endl;
+	} else {
+		string errorMessage = "\n\nEncontrada variável!\nNome: " + nome + "\nTipo: " + globalTabSym[nome].tipo + "no escopo global!\n";
+		yyerror(errorMessage);
 	}
 	//se não encontrei, a variável não existe e poderá ser adicionada.
 }
