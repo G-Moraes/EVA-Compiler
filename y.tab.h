@@ -65,7 +65,7 @@ extern int yydebug;
     TK_TIPO_BOOL = 275,
     TK_TIPO_CHAR = 276,
     TK_TIPO_STRING = 277,
-    TK_UN_POS = 278,
+    TK_UN_SUM = 278,
     TK_CONV_FLOAT = 279,
     TK_CONV_INT = 280,
     TK_LE = 281,
@@ -102,7 +102,7 @@ extern int yydebug;
 #define TK_TIPO_BOOL 275
 #define TK_TIPO_CHAR 276
 #define TK_TIPO_STRING 277
-#define TK_UN_POS 278
+#define TK_UN_SUM 278
 #define TK_CONV_FLOAT 279
 #define TK_CONV_INT 280
 #define TK_LE 281

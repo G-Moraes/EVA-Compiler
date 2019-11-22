@@ -1,5 +1,10 @@
 int main()
 {
-	var global c int = 45;
-	var c float = 1.0;
+	var i int = 0;
+
+	for i; i < 5; i++
+	{
+		var c float;
+	}
+
 }

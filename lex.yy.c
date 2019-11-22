@@ -1102,7 +1102,7 @@ YY_RULE_SETUP
 case 22:
 YY_RULE_SETUP
 #line 62 "lexica.l"
-{return TK_UN_POS;}
+{return TK_UN_SUM;}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP

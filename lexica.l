@@ -59,7 +59,7 @@ STRING \'({LETRA}|{NUM})*\'
 
 "(i)"		{return TK_CONV_INT;}
 
-"++"        {return TK_UN_POS;}
+"++"        {return TK_UN_SUM;}
 
 "bool"		{yylval.label = "bool"; yylval.traducao = yytext; return TK_TIPO_BOOL;}
 
