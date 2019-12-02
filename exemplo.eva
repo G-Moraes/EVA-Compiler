@@ -1,10 +1,10 @@
 int main()
 {
-	var i int = 0;
+	var i [2][2]int;
+	i = {	[1,2],
+			 	[4,5,6]
+			};
 
-	for i; i < 5; i++
-	{
-		var c float;
-	}
-
+	//var i [3]int;
+	//i = [1,2,3,4];
 }

@@ -11,5 +11,4 @@
 -A fazer
 
 	*string
-	*escopo global
 	*switch
