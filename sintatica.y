@@ -814,10 +814,18 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' E
 
 							else{
 
-								variable Var = searchForVariable($1.label);
-								cout << "********* " << tamanho_vetor << endl;
-								$$.traducao = $4.traducao + addElementsToArray(tamanho_vetor, Var.nome);
-								tamanho_vetor = 0;
+								cout << "MMMMMMMMMMM " << tamanho_linhas << " " << tamanho_vetor << endl;
+
+								if(tamanho_linhas >= tamanho_vetor){
+									variable Var = searchForVariable($1.label);
+									cout << "********* " << tamanho_vetor << endl;
+									$$.traducao = $4.traducao + addElementsToArray(tamanho_vetor, Var.nome);
+									tamanho_vetor = 0;
+								}
+
+								else{
+									yyerror("Vetor atribuido maior que suportado na variável!");
+								}
 							}
 						}
 
@@ -1082,6 +1090,7 @@ ARRAYDECLARATION : TK_DEC_VAR TK_ID '[' E ']'
 
 										 if(stringstream(temp) >> found){
 											 cout << "______________ " << found << endl;
+											 tamanho_linhas = found;
 										 }
 									 }
 								 }
@@ -1989,6 +1998,7 @@ string addElementsToArray(int tamanhoArray, string nomeArray){
 		label_vet.pop();
 		tipo_vet.pop();
 		trad_vet.pop();
+		tamanho_linhas++;
 	}
 
 	for(int i = 0; i < tamanhoArray; i++){

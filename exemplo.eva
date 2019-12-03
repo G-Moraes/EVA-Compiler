@@ -1,4 +1,13 @@
 int main()
 {
+  //var a *int; //declaração de array sem tamanho
+  var b [2]int; //declaracao com tamanho fixo
+  //var c [2][2]int; //declaracao de matriz
 
+  //a = [1,2,3];
+  b = [4,5,6];
+
+  //c = { [7,8],
+  //      [9,10]
+    //  };
 }
