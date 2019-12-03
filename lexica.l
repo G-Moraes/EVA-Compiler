@@ -59,7 +59,17 @@ STRING \'({LETRA}|{NUM})*\'
 
 "(i)"		{return TK_CONV_INT;}
 
-"++"        {return TK_UN_SUM;}
+"++"    {return TK_UN_SUM;}
+
+"--"    {return TK_UN_SUB;}
+
+"+="    {return TK_NUN_SUM;}
+
+"-="    {return TK_NUN_SUB;}
+
+"*="    {return TK_NUN_MUL;}
+
+"/="    {return TK_NUN_DIV;}
 
 "bool"		{yylval.label = "bool"; yylval.traducao = yytext; return TK_TIPO_BOOL;}
 
