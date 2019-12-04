@@ -41,7 +41,7 @@ int valorLoops = 0;
 int valorAuxiliar = 0;
 int mapAtual = 0; //indica qual contexto está
 int tamanho_vetor = 0; //indica o tamanho do vetor atual
-int tamanho_linhas = 1;
+int tamanho_linhas = 0;
 int tamanho_colunas = 0;
 int elementos_matriz;
 
@@ -55,6 +55,13 @@ vector <string> globalTempVector; //vetor de impressão global
 stack <int> stackLoops; //pilha de variáveis de controle de loop
 stack <string> stackCommands; //pilha que auxilia qual o tipo de loop existem
 stack <string> stackVectors;
+
+unordered_map <string, int> map_vetor;
+unordered_map <string, int> map_linhas;
+unordered_map <string, int> map_colunas;
+unordered_map <string, int> pointer_vector;
+unordered_map <string, variable> arrayPointerNames;
+
 vector <unordered_map<string, variable>> contextoVariaveis; //pilha de contextos
 
 //funções yacc
@@ -220,6 +227,7 @@ VETOR	: E
 			{
 				$$.traducao = $1.traducao;
 				tamanho_vetor++;
+				//tamanho_linhas++;
 				label_vet.push($1.label);
 				tipo_vet.push($1.tipo);
 				trad_vet.push($1.traducao);
@@ -231,7 +239,6 @@ VETOR	: E
 			{
 				$$.traducao = $1.traducao + $3.traducao;
 				tamanho_vetor++;
-				tamanho_linhas++;
 				$$.tipo = $1.tipo;
 				label_vet.push($3.label);
 				tipo_vet.push($3.tipo);
@@ -804,9 +811,11 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' E
 						| TK_ID '=' '[' VETOR ']'
 						{
 							variable Var = searchForVariable($1.label);
+							map_vetor[Var.nome] = tamanho_vetor;
 							cout << Var.nome << endl;
 							cout << Var.tipo << endl;
 							cout << Var.valor << endl;
+
 							if(Var.tipo != $4.tipo + '*'){
 
 								yyerror("Um elemento tentando ser adicionado ao vetor que não é do mesmo tipo!");
@@ -814,13 +823,16 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' E
 
 							else{
 
-								cout << "MMMMMMMMMMM " << tamanho_linhas << " " << tamanho_vetor << endl;
+								if(map_linhas[Var.nome] >= map_vetor[Var.nome]){
 
-								if(tamanho_linhas >= tamanho_vetor){
-									variable Var = searchForVariable($1.label);
-									cout << "********* " << tamanho_vetor << endl;
-									$$.traducao = $4.traducao + addElementsToArray(tamanho_vetor, Var.nome);
+
+
+									$$.traducao = $4.traducao + addElementsToArray(map_vetor[Var.nome], Var.nome);
+									cout << "TAMANHO VETOR: " << tamanho_vetor <<"\nTAMANHO LINHA: " << tamanho_linhas << endl;
+									map_linhas[Var.nome] = map_linhas[Var.nome] - map_vetor[Var.nome];
+									cout << "TAMANHO LINHA ATUAL: " << tamanho_linhas << endl;
 									tamanho_vetor = 0;
+									map_vetor[Var.nome] = 0;
 								}
 
 								else{
@@ -841,19 +853,35 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' E
 							}
 
 							else{
-
-								cout << "?????? " << tamanho_linhas << " " << tamanho_colunas << endl;
-								/*if(tamanho_vetor > tamanho_linhas * tamanho_colunas){
+							if(tamanho_vetor > elementos_matriz){
 									yyerror("Vetor atribuido maior que variável suporta!");
-								}*/
+								}
 
-								//else{
+								else{
 									variable Var = searchForVariable($1.label);
-									cout << "********* " << tamanho_vetor << endl;
+
 									$$.traducao = $4.traducao + addElementsToArray(elementos_matriz, Var.nome);
+
+
 									//tamanho_vetor -= tamanho_linhas;
 									tamanho_vetor = 0;
-								//}
+								}
+							}
+						}
+
+						| TK_ID '[' E ']' '=' E //array[posicao] = valor
+						{
+							variable Var = searchForVariable($1.label);
+
+							if(Var.tipo != $6.tipo){
+
+								yyerror("Um elemento tentando ser adicionado ao vetor que não é do mesmo tipo!");
+							}
+
+							else{
+								if(map_linhas[Var.nome] != 0){
+									$$.traducao = $6.traducao + "\t" + Var.nome + "";
+								}
 							}
 						}
 						;
@@ -900,8 +928,22 @@ DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 						| ARRAYDECLARATION TK_TIPO_CHAR
 						{
 							string nomeAuxID = addVarToTabSym($2.label, "empty", "char*");
-							stackVectors.push("\tfree(" + nomeAuxID );
+							stackVectors.push("\tfree(" + nomeAuxID + ");\n");
 							variable auxiliarInteiro = searchForVariable($1.label);
+							map_linhas[nomeAuxID] = tamanho_linhas;
+
+							string nome0 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nome1 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nomeAux = addVarToTabSym(nome0, "0", "int");
+							string acrescimo = addVarToTabSym(nome1, "1", "int");
+							addVarToTempVector("\tint " + nomeAux + ";\n");
+							addVarToTempVector("\tint " + acrescimo + ";\n");
+							Variable Var1 = searchForVariable(nome0); //usar "var" como nome de variável é uma decisão horrível
+							Variable Var2 = searchForVariable(nome1); //seja quem for lendo isso, não faça o que eu fiz
+							string trad = "\t" + Var1.nome + " = 0;\n" + "\t" + Var2.nome + " = 1;\n";
+							arrayPointerNames[nomeAuxID] = Var1; //aqui eu armazeno o nome da variável que servirá de ponteiro pro vetor
+							arrayPointerNames[nomeAuxID + "Acrescimo"] =  Var2;
+
 							$$.traducao = "\t" + nomeAuxID + " = (char*) malloc(" +
 							auxiliarInteiro.valor + " * sizeof(char));\n";
 							addVarToTempVector("\tchar* " + nomeAuxID + ";\n");
@@ -912,6 +954,20 @@ DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 							string nomeAuxID = addVarToTabSym($2.label, "empty", "float*");
 							stackVectors.push("\tfree(" + nomeAuxID + ");\n");
 							variable auxiliarInteiro = searchForVariable($1.label);
+							map_linhas[nomeAuxID] = tamanho_linhas;
+
+							string nome0 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nome1 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nomeAux = addVarToTabSym(nome0, "0", "int");
+							string acrescimo = addVarToTabSym(nome1, "1", "int");
+							addVarToTempVector("\tint " + nomeAux + ";\n");
+							addVarToTempVector("\tint " + acrescimo + ";\n");
+							Variable Var1 = searchForVariable(nome0); //usar "var" como nome de variável é uma decisão horrível
+							Variable Var2 = searchForVariable(nome1); //seja quem for lendo isso, não faça o que eu fiz
+							string trad = "\t" + Var1.nome + " = 0;\n" + "\t" + Var2.nome + " = 1;\n";
+							arrayPointerNames[nomeAuxID] = Var1; //aqui eu armazeno o nome da variável que servirá de ponteiro pro vetor
+							arrayPointerNames[nomeAuxID + "Acrescimo"] =  Var2;
+
 							$$.traducao = "\t" + nomeAuxID + " = (float*) malloc(" +
 							auxiliarInteiro.valor + " * sizeof(float));\n";
 							addVarToTempVector("\tfloat* " + nomeAuxID + ";\n");
@@ -922,18 +978,43 @@ DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 							string nomeAuxID = addVarToTabSym($2.label, "empty", "int*");
 							stackVectors.push("\tfree(" + nomeAuxID + ");\n");
 							variable auxiliarInteiro = searchForVariable($1.label);
-							$$.traducao = "\t" + nomeAuxID + " = (int*) malloc(" +
+							map_linhas[nomeAuxID] = tamanho_linhas;
+
+							string nome0 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nome1 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nomeAux = addVarToTabSym(nome0, "0", "int");
+							string acrescimo = addVarToTabSym(nome1, "1", "int");
+							addVarToTempVector("\tint " + nomeAux + ";\n");
+							addVarToTempVector("\tint " + acrescimo + ";\n");
+							Variable Var1 = searchForVariable(nome0); //usar "var" como nome de variável é uma decisão horrível
+							Variable Var2 = searchForVariable(nome1); //seja quem for lendo isso, não faça o que eu fiz
+							string trad = "\t" + Var1.nome + " = 0;\n" + "\t" + Var2.nome + " = 1;\n";
+							arrayPointerNames[nomeAuxID] = Var1; //aqui eu armazeno o nome da variável que servirá de ponteiro pro vetor
+							arrayPointerNames[nomeAuxID + "Acrescimo"] =  Var2;
+
+							$$.traducao = trad + "\t" + nomeAuxID + " = (int*) malloc(" +
 							auxiliarInteiro.valor + " * sizeof(int));\n";
 							addVarToTempVector("\tint* " + nomeAuxID + ";\n");
 						}
-
 
 						| MATRIXDECLARATION TK_TIPO_INT
 						{
 							string nomeAuxID = addVarToTabSym($2.label, "empty", "int*");
 							stackVectors.push("\tfree(" + nomeAuxID + ");\n");
-							//variable auxiliarInteiro = searchForVariable($1.label);
-							$$.traducao = "\t" + nomeAuxID + " = (int*) malloc(" +
+
+							string nome0 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nome1 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nomeAux = addVarToTabSym(nome0, "0", "int");
+							string acrescimo = addVarToTabSym(nome1, "1", "int");
+							addVarToTempVector("\tint " + nomeAux + ";\n");
+							addVarToTempVector("\tint " + acrescimo + ";\n");
+							Variable Var1 = searchForVariable(nome0); //usar "var" como nome de variável é uma decisão horrível
+							Variable Var2 = searchForVariable(nome1); //seja quem for lendo isso, não faça o que eu fiz
+							string trad = "\t" + Var1.nome + " = 0;\n" + "\t" + Var2.nome + " = 1;\n";
+							arrayPointerNames[nomeAuxID] = Var1; //aqui eu armazeno o nome da variável que servirá de ponteiro pro vetor
+							arrayPointerNames[nomeAuxID + "Acrescimo"] =  Var2;
+
+							$$.traducao = trad + "\t" + nomeAuxID + " = (int*) malloc(" +
 							to_string(elementos_matriz) + " * sizeof(int));\n";
 							addVarToTempVector("\tint* " + nomeAuxID + ";\n");
 						}
@@ -942,7 +1023,19 @@ DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 						{
 							string nomeAuxID = addVarToTabSym($2.label, "empty", "float*");
 							stackVectors.push("\tfree(" + nomeAuxID + ");\n");
-							//variable auxiliarInteiro = searchForVariable($1.label);
+
+							string nome0 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nome1 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nomeAux = addVarToTabSym(nome0, "0", "int");
+							string acrescimo = addVarToTabSym(nome1, "1", "int");
+							addVarToTempVector("\tint " + nomeAux + ";\n");
+							addVarToTempVector("\tint " + acrescimo + ";\n");
+							Variable Var1 = searchForVariable(nome0); //usar "var" como nome de variável é uma decisão horrível
+							Variable Var2 = searchForVariable(nome1); //seja quem for lendo isso, não faça o que eu fiz
+							string trad = "\t" + Var1.nome + " = 0;\n" + "\t" + Var2.nome + " = 1;\n";
+							arrayPointerNames[nomeAuxID] = Var1; //aqui eu armazeno o nome da variável que servirá de ponteiro pro vetor
+							arrayPointerNames[nomeAuxID + "Acrescimo"] =  Var2;
+
 							$$.traducao = "\t" + nomeAuxID + " = (float*) malloc(" +
 							to_string(elementos_matriz) + " * sizeof(float));\n";
 							addVarToTempVector("\tfloat* " + nomeAuxID + ";\n");
@@ -952,19 +1045,46 @@ DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 						{
 							string nomeAuxID = addVarToTabSym($2.label, "empty", "char*");
 							stackVectors.push("\tfree(" + nomeAuxID + ");\n");
-							//variable auxiliarInteiro = searchForVariable($1.label);
+
+							string nome0 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nome1 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nomeAux = addVarToTabSym(nome0, "0", "int");
+							string acrescimo = addVarToTabSym(nome1, "1", "int");
+							addVarToTempVector("\tint " + nomeAux + ";\n");
+							addVarToTempVector("\tint " + acrescimo + ";\n");
+							Variable Var1 = searchForVariable(nome0); //usar "var" como nome de variável é uma decisão horrível
+							Variable Var2 = searchForVariable(nome1); //seja quem for lendo isso, não faça o que eu fiz
+							string trad = "\t" + Var1.nome + " = 0;\n" + "\t" + Var2.nome + " = 1;\n";
+							arrayPointerNames[nomeAuxID] = Var1; //aqui eu armazeno o nome da variável que servirá de ponteiro pro vetor
+							arrayPointerNames[nomeAuxID + "Acrescimo"] =  Var2;
+
 							$$.traducao = "\t" + nomeAuxID + " = (char*) malloc(" +
 							to_string(elementos_matriz) + " * sizeof(char));\n";
 							addVarToTempVector("\tchar* " + nomeAuxID + ";\n");
 						}
+
 						//tamanho variável
 
 						| TK_DEC_VAR TK_ID '*' TK_TIPO_INT
 						{
 							string nomeAuxID = addVarToTabSym($2.label, "empty", "int*");
 							stackVectors.push("\tfree(" + nomeAuxID + ");\n");
-							$$.traducao = "\t" + nomeAuxID + " = (int*) malloc(" +
-							to_string(tamanho_vetor) + " * sizeof(int));\n";
+
+							string nome0 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nome1 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nomeAux = addVarToTabSym(nome0, "0", "int");
+							string acrescimo = addVarToTabSym(nome1, "1", "int");
+							addVarToTempVector("\tint " + nomeAux + ";\n");
+							addVarToTempVector("\tint " + acrescimo + ";\n");
+							Variable Var1 = searchForVariable(nome0); //usar "var" como nome de variável é uma decisão horrível
+							Variable Var2 = searchForVariable(nome1); //seja quem for lendo isso, não faça o que eu fiz
+							string trad = "\t" + Var1.nome + " = 0;\n" + "\t" + Var2.nome + " = 1;\n";
+							arrayPointerNames[nomeAuxID] = Var1; //aqui eu armazeno o nome da variável que servirá de ponteiro pro vetor
+							arrayPointerNames[nomeAuxID + "Acrescimo"] =  Var2;
+
+							map_linhas[nomeAuxID] = 50;
+							$$.traducao = trad + "\t" + nomeAuxID + " = (int*) malloc(50 * sizeof(int));\n";
+							//tamanho_vetor = 50;
 							addVarToTempVector("\tint* " + nomeAuxID + ";\n");
 						}
 
@@ -973,6 +1093,19 @@ DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 							string nomeAuxID = addVarToTabSym($2.label, "empty", "float*");
 							stackVectors.push("\tfree(" + nomeAuxID + ");\n");
 
+							string nome0 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nome1 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nomeAux = addVarToTabSym(nome0, "0", "int");
+							string acrescimo = addVarToTabSym(nome1, "1", "int");
+							addVarToTempVector("\tint " + nomeAux + ";\n");
+							addVarToTempVector("\tint " + acrescimo + ";\n");
+							Variable Var1 = searchForVariable(nome0); //usar "var" como nome de variável é uma decisão horrível
+							Variable Var2 = searchForVariable(nome1); //seja quem for lendo isso, não faça o que eu fiz
+							string trad = "\t" + Var1.nome + " = 0;\n" + "\t" + Var2.nome + " = 1;\n";
+							arrayPointerNames[nomeAuxID] = Var1; //aqui eu armazeno o nome da variável que servirá de ponteiro pro vetor
+							arrayPointerNames[nomeAuxID + "Acrescimo"] =  Var2;
+
+							map_linhas[nomeAuxID] = 50;
 							$$.traducao = "\t" + nomeAuxID + " = (float*) malloc(" +
 							to_string(tamanho_vetor) + " * sizeof(float));\n";
 							addVarToTempVector("\tfloat* " + nomeAuxID + ";\n");
@@ -982,9 +1115,21 @@ DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 						{
 							string nomeAuxID = addVarToTabSym($2.label, "empty", "char*");
 							stackVectors.push("\tfree(" + nomeAuxID + ");\n");
-							variable auxiliarInteiro = searchForVariable($1.label);
-							$$.traducao = "\t" + nomeAuxID + " = (char*) malloc(" +
-							auxiliarInteiro.valor + " * sizeof(char));\n";
+
+							string nome0 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nome1 = "Auxiliar" + to_string(valorAuxiliar++);
+							string nomeAux = addVarToTabSym(nome0, "0", "int");
+							string acrescimo = addVarToTabSym(nome1, "1", "int");
+							addVarToTempVector("\tint " + nomeAux + ";\n");
+							addVarToTempVector("\tint " + acrescimo + ";\n");
+							Variable Var1 = searchForVariable(nome0); //usar "var" como nome de variável é uma decisão horrível
+							Variable Var2 = searchForVariable(nome1); //seja quem for lendo isso, não faça o que eu fiz
+							string trad = "\t" + Var1.nome + " = 0;\n" + "\t" + Var2.nome + " = 1;\n";
+							arrayPointerNames[nomeAuxID] = Var1; //aqui eu armazeno o nome da variável que servirá de ponteiro pro vetor
+							arrayPointerNames[nomeAuxID + "Acrescimo"] =  Var2;
+
+							map_linhas[nomeAuxID] = 50;
+							$$.traducao = "\t" + nomeAuxID + " = (char*) malloc(50 * sizeof(char));\n";
 							addVarToTempVector("\tchar* " + nomeAuxID + ";\n");
 						}
 
@@ -1078,7 +1223,6 @@ DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 ARRAYDECLARATION : TK_DEC_VAR TK_ID '[' E ']'
 								 {
 									 $$ = $4;
-
 									 stringstream tamanho;
 
 									 tamanho << $4.traducao;
@@ -1966,31 +2110,7 @@ void checkForVariable(string nome){
 
 string addElementsToArray(int tamanhoArray, string nomeArray){
 
-	string nome0 = "Auxiliar" + to_string(valorAuxiliar++);
-	string nome1 = "Auxiliar" + to_string(valorAuxiliar++);
-
-	cout << nome0 << endl;
-	cout << nome1 << endl;
-
-	if(mapAtual == 0){
-
-		string nomeAux = addVarToGlobalTabSym(nome0, "0", "int");
-		string acrescimo = addVarToGlobalTabSym(nome1, "1", "int");
-		addVarToGlobalTempVector("\tint " + nomeAux + ";\n");
-		addVarToGlobalTempVector("\tint " + acrescimo + ";\n");
-	}
-
-	else if (mapAtual != 0){
-		string nomeAux = addVarToTabSym(nome0, "0", "int");
-		string acrescimo = addVarToTabSym(nome1, "1", "int");
-		addVarToTempVector("\tint " + nomeAux + ";\n");
-		addVarToTempVector("\tint " + acrescimo + ";\n");
-	}
-
-	Variable Var1 = searchForVariable(nome0); //usar "var" como nome de variável é uma decisão horrível
-	Variable Var2 = searchForVariable(nome1); //seja quem for lendo isso, não faça o que eu fiz
-	string trad = "\t" + Var1.nome + " = 0;\n" + "\t" + Var2.nome + " = 1;\n";
-
+	string trad = "";
 	stack <string> auxStack;
 
 	for(int i = 0; i < tamanhoArray; i++){ //uma das gambiarras mais criminosas que eu fiz
@@ -1998,8 +2118,10 @@ string addElementsToArray(int tamanhoArray, string nomeArray){
 		label_vet.pop();
 		tipo_vet.pop();
 		trad_vet.pop();
-		tamanho_linhas++;
 	}
+
+	variable Var1 = arrayPointerNames[nomeArray];
+	variable Var2 = arrayPointerNames[nomeArray + "Acrescimo"];
 
 	for(int i = 0; i < tamanhoArray; i++){
 		trad = trad + "\t" + nomeArray + "[" + Var1.nome + "] = " + auxStack.top() +
