@@ -19,6 +19,8 @@ STRING \'({LETRA}|{NUM})*\'
 
 "//".*      {}
 
+"/*"([^*]|\*+[^*/])*\*+"/"  {}
+
 {DELIM} 	{}
 
 "main"		{return TK_MAIN;}

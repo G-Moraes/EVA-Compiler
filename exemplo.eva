@@ -1,14 +1,17 @@
 int main()
 {
-  //var a [2]int; //declaração de array sem tamanho
-  var b *int;
+  var vetor [10]int;
+
+  for var i int = 0; i < 10; i++{
+
+    vetor[i] = 0;
+  }
+
+  /*var b *int;
 
   b = [1,2];
 
-   //declaracao com tamanho fixo
+  //declaracao com tamanho fixo
   var c [2][2] int; //declaracao de matriz
-  //d = [5,6];
-  c = { [7, 8],
-        [9, 0]
-      };
+  d = [5,6];*/
 }
