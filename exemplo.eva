@@ -2,14 +2,8 @@ int main()
 {
   /*
   var a [10]int; //declaracao com tamanho fixo
-
-  var c [2][2] int; //declaração de matriz
+  var b *int; //declaracao de tamanho variavel (50 no máx)
+  var c [2][2]int; //declaração de matriz
   */
-
-  var b [2][2]int; //declaracao de tamanho variavel (50 no máx)
-
-  b = {[1,2],
-       [4,5,6]
-      };
 
 }
