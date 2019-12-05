@@ -253,16 +253,17 @@ MATRIZ	: '[' VETOR ']'
 					$$.traducao = $2.traducao;
 					$$.tipo = $2.tipo;
           tamanho_linhas++;
-					//tamanho_vetor = 0;
+					tamanho_vetor = 0;
 					cout << "Adicionado uma linha! Linhas totais: " << tamanho_linhas << endl;
 				}
 
 				| MATRIZ ',' '['VETOR']'
         {
           $$.traducao = $1.traducao + $4.traducao;
-          tamanho_colunas++;
-					//tamanho_vetor = 0;
-					cout << "Adicionado uma coluna! Colunas totais: " << tamanho_colunas << endl;
+          tamanho_linhas++;
+					tamanho_colunas = tamanho_vetor;
+					tamanho_vetor = 0;
+					cout << "Adicionado uma linha! Linhas totais: " << tamanho_linhas << endl;
         }
 				;
 
@@ -837,8 +838,6 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' E
 
 								if(map_linhas[Var.nome] >= map_vetor[Var.nome]){
 
-
-
 									$$.traducao = $4.traducao + addElementsToArray(map_vetor[Var.nome], Var.nome);
 									cout << "TAMANHO VETOR: " << tamanho_vetor <<"\nTAMANHO LINHA: " << tamanho_linhas << endl;
 									map_linhas[Var.nome] = map_linhas[Var.nome] - map_vetor[Var.nome];
@@ -860,48 +859,66 @@ ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' E
 							cout << Var.tipo << endl;
 							cout << Var.valor << endl;
 							if(Var.tipo != $4.tipo + '*'){
-
 								yyerror("Um elemento tentando ser adicionado ao vetor que não é do mesmo tipo!");
 							}
-
 							else{
 							if(tamanho_vetor > elementos_matriz){
 									yyerror("Vetor atribuido maior que variável suporta!");
 								}
-
 								else{
 									variable Var = searchForVariable($1.label);
-
 									$$.traducao = $4.traducao + addElementsToArray(elementos_matriz, Var.nome);
-
-
 									//tamanho_vetor -= tamanho_linhas;
 									tamanho_vetor = 0;
 								}
 							}
 						}
 
-						| TK_ID '[' E ']' '=' E //array[posicao] = valor
+						| TRYING TK_ID ']' '=' E //array[posicao] = valor
 						{
 							variable Var = searchForVariable($1.label);
 
-							if(Var.tipo != $6.tipo + "*"){
+							if(Var.tipo != $5.tipo + "*"){
 
 								yyerror("Um elemento tentando ser adicionado ao vetor que não é do mesmo tipo!");
 							}
 
 							else{
 								if(map_linhas[Var.nome] != 0){
-
+									checkForVariable($2.label);
 									variable pointer = arrayPointerNames[Var.nome];
-									variable kmpls = searchForVariable($3.label);
+									variable kmpls = searchForVariable($2.label);
+									$$.traducao = $5.traducao + "\t" + pointer.nome + " = " + kmpls.nome +
+									";\n\t" + Var.nome + "[" + pointer.nome + "] = " + $5.label + ";\n";
+								}
+							}
+						}
 
-									$$.traducao = $3.traducao + "\t" + pointer.nome + " = " + $3.label +
-									";\n\t" + Var.nome + "[" + pointer.nome + "] = " + $6.label + ";\n";
+						| TRYING E ']' '=' E
+						{
+							variable Var = searchForVariable($1.label);
+
+							if(Var.tipo != $5.tipo + "*"){
+
+								yyerror("Um elemento tentando ser adicionado ao vetor que não é do mesmo tipo!");
+							}
+
+							else{
+								if(map_linhas[Var.nome] != 0){
+									//checkForVariable($2.label);
+									variable pointer = arrayPointerNames[Var.nome];
+									//variable kmpls = searchForVariable($3.label);
+									$$.traducao = $2.traducao + $5.traducao + "\t" + pointer.nome + " = " + $2.label +
+									";\n\t" + Var.nome + "[" + pointer.nome + "] = " + $5.label + ";\n";
 								}
 							}
 						}
 						;
+
+TRYING	: TK_ID '['
+				{
+					$$ = $1;
+				}
 
 DECLARACAO	: TK_DEC_VAR TK_ID TK_TIPO_CHAR
 						{
@@ -1859,7 +1876,7 @@ E 			  : E '+' E
 				variable auxVar = searchForVariable($1.label);
 				$$.label = auxVar.nome;
 				$$.tipo = auxVar.tipo;
-				$$.traducao;
+				$$.traducao = auxVar.valor;
 			}
 			;
 %%
