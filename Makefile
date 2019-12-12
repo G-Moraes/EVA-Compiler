@@ -1,6 +1,6 @@
 all:
 		clear
-		lex -d lexica.l
+		lex lexica.l
 		yacc -d sintatica.y
-		g++ -o glf y.tab.c -ll 
-		./glf < exemplo.eva
+		g++ -o glf y.tab.c -ll
+		./glf < exemplo.eva > codigoTeste.cpp

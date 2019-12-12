@@ -1,8 +1,12 @@
 int main()
 {
-  //var global a *int;
-  var i int = 2;
-  //var global c int = 3;
-  //global i = global c;
 
+  //var global a *int;
+
+  for var i int = 0; i < 10; i++{
+
+
+    //x = entrada;
+    saida = i;
+  }
 }
