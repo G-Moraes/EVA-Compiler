@@ -105,6 +105,7 @@ string addVarToGlobalTabSym(string nomeGerado, string nomeDado, string conteudoV
 variable searchForVariable(string nome);
 variable searchForGlobalVariable(string nome);
 void checkForVariable(string nome);
+void checkForGlobalVariable(string nome);
 void printGlobalVariables();
 %}
 
@@ -281,14 +282,14 @@ ENTRADA 	: TK_ID '=' TK_ENTRADA
 				$$.tipo = $1.tipo;
 				variable Var = searchForVariable($1.label);
 				cout << $$.label << " = " << $3.label << endl;
-				$$.traducao = "\tstd::cin <<" + $$.traducao + $1.traducao + ";\n";
+				$$.traducao = "\tstd::cin << " + $$.traducao + $1.traducao + ";\n";
 			};
 
 SAIDA 		: TK_SAIDA '=' TK_ID
 			{
 				$$.label = genLabel();
 				variable Var = searchForVariable($3.label);
-				$$.traducao = "\tstd::cout  <<" + $3.traducao + ";\n";
+				$$.traducao = "\tstd::cout  << " + Var.nome + ";\n";
 			}
 
 ATRIBUICAO 	: TK_DEC_VAR TK_ID TK_TIPO_CHAR '=' E
@@ -2605,6 +2606,8 @@ E 			  : E '+' E
 							MapCondicional[$$.label] = auxCond;
 						}
 						else{ //se as duas variáveis são do mesmo tipo
+							
+							$$.label = genLabel();
 							$$.tipo = "bool";
 							$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " > " + $3.label + ";\n";
 
@@ -2647,6 +2650,7 @@ E 			  : E '+' E
 
 						else{ //se as duas variáveis são do mesmo tipo
 							$$.label = genLabel();
+							$$.tipo = "int";
 							$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label + " = " + $1.label + " <= " + $3.label + ";\n";
 
 							condVar auxCond = {
@@ -2919,7 +2923,7 @@ string addVarToTabSym(string nomeGerado, string nomeDado, string conteudoVar, st
 
 string addVarToGlobalTabSym(string nomeGerado, string nomeDado, string conteudoVar, string tipoVar){
 
-	checkForVariable(nomeDado);
+	checkForGlobalVariable(nomeDado);
 	unordered_map<string, variable>::const_iterator got = globalTabSym.find(nomeDado);
 
 	if(got == globalTabSym.end()){
@@ -3132,6 +3136,17 @@ void checkForVariable(string nome){
 	if(got != (contextoVariaveis.back()).end()){ //se esse if for verdade, quer dizer que encontrei a variável no map
 
 		string errorMessage = "\n\nEncontrada variável 2!\nNome: " + nome + "\nTipo: " + (contextoVariaveis.back())[nome].tipo + "\n";
+		yyerror(errorMessage);
+	}
+}
+
+void checkForGlobalVariable(string nome){
+
+	unordered_map<string, variable>::const_iterator got = globalTabSym.find(nome); //procuro a variável pelo nome no map mais interno
+
+	if(got != globalTabSym.end()){ //se esse if for verdade, quer dizer que encontrei a variável no map
+
+		string errorMessage = "\n\nEncontrada variável 2!\nNome: " + nome + "\nTipo: " + globalTabSym[nome].tipo + "\n";
 		yyerror(errorMessage);
 	}
 }
