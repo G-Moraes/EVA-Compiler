@@ -1,9 +1,8 @@
 int main()
 {
-  /*
-  var a [10]int; //declaracao com tamanho fixo
-  var b *int; //declaracao de tamanho variavel (50 no máx)
-  var c [2][2]int; //declaração de matriz
-  */
+  //var global a *int;
+  var i int = 2;
+  //var global c int = 3;
+  //global i = global c;
 
 }
