@@ -1,13 +1,19 @@
 int main()
 {
 
-  //var global a *int
-  var a int = 10;
- var i int = 0;
+  /*Compilador Eva: A ideia era fazer uma linguagem bem parecida com Go. Algumas declarações:
 
-  for i; i < 10; i++ {
+  var a int; //esse tipo de declaração atribui o valor nulo do tipo para a variável.
+  var b int = 1; //declaração com atribuição, Go-like.
+  var global c int; //declaração de variável global.
+  var d int*; //declaração de um array sem tamanho pré-definido (o padrão é 50).
+  var e [10]int; //declaração de array com tamanho definido.
+  var f [10]int = [0,1,2,3,4,5,6,7,8,9]; //declaração com atribuição.
+  var global g int*; //vetor sem tamanho pré-definidodeclarado como global.
+  var global i [5]int; // vetor de tamanho definido declarado como global.
+  var j [10][10]int; //matriz em Eva tem essa aparência. Para acessar seus espaços, trate como um array unidimensional.
+  var global k [2][2]int;
 
-    saida = a;
-  }
+  */
 
 }
